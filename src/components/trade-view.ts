@@ -1,9 +1,12 @@
-import { pnl } from "@/lib/trades/calc";
+import { livePosition, type PositionAlert } from "@/lib/quotes/positions";
+import type { QuoteMap } from "@/lib/quotes/types";
+import { pnl, purchaseValue } from "@/lib/trades/calc";
 import {
   formatAmount,
   formatDate,
   formatInt,
   formatOptionalPrice,
+  formatPercent,
   formatPrice,
   formatRatio,
   formatRMultiple,
@@ -18,9 +21,12 @@ export type TradeView = {
   date: string;
   statusLabel: string;
   statusClass: string;
-  result: { text: string; className: string; rMultiple: string | null };
+  result: { text: string; className: string; note: string | null };
   buy: string;
   quantity: string;
+  purchaseValue: string;
+  current: { price: string; change: string | null; changeClass: string } | null;
+  alert: PositionAlert;
   stop: string;
   target: string;
   sell: string;
@@ -29,24 +35,44 @@ export type TradeView = {
   rewardToRisk: string;
 };
 
-function resultOf(trade: Trade): TradeView["result"] {
+export const ALERT_LABELS: Record<Exclude<PositionAlert, null>, string> = {
+  stop: "ضرب الوقف",
+  target: "وصل الهدف",
+};
+
+const signedPercent = (value: number): string => `${value > 0 ? "+" : ""}${formatPercent(value)}`;
+
+function resultOf(trade: Trade, live: ReturnType<typeof livePosition>): TradeView["result"] {
   const value = pnl(trade);
-  const multiple = rMultiple(trade);
-  const rText = multiple === null ? null : formatRMultiple(multiple);
-  if (value !== null) return { text: formatSignedMoney(value), className: toneOf(value), rMultiple: rText };
-  if (trade.status === "cancelled") return { text: "—", className: "muted", rMultiple: null };
-  return { text: "غير محقق", className: "muted", rMultiple: null };
+  if (value !== null) {
+    const multiple = rMultiple(trade);
+    return { text: formatSignedMoney(value), className: toneOf(value), note: multiple === null ? null : formatRMultiple(multiple) };
+  }
+  if (live) {
+    const r = live.unrealisedR === null ? "" : ` · ${formatRMultiple(live.unrealisedR)}`;
+    return { text: formatSignedMoney(live.unrealised), className: toneOf(live.unrealised), note: `غير محقق${r}` };
+  }
+  if (trade.status === "cancelled") return { text: "—", className: "muted", note: null };
+  return { text: "غير محقق", className: "muted", note: null };
 }
 
-export function toTradeView(trade: Trade): TradeView {
+export function toTradeView(trade: Trade, quotes: QuoteMap): TradeView {
   const risk = riskProfile(trade);
+  const live = livePosition(trade, quotes);
   return {
     date: formatDate(trade.entryDate),
     statusLabel: STATUS_LABELS[trade.status],
     statusClass: `pill--${trade.status}`,
-    result: resultOf(trade),
+    result: resultOf(trade, live),
     buy: formatPrice(trade.buyPrice),
     quantity: formatInt(trade.quantity),
+    purchaseValue: formatAmount(purchaseValue(trade)),
+    current: live && {
+      price: formatPrice(live.price),
+      change: live.changePercent === null ? null : signedPercent(live.changePercent),
+      changeClass: live.changePercent === null ? "" : toneOf(live.changePercent),
+    },
+    alert: live?.alert ?? null,
     stop: formatOptionalPrice(trade.stopLoss),
     target: formatOptionalPrice(trade.targetPrice),
     sell: formatOptionalPrice(trade.sellPrice),

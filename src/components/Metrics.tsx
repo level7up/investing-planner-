@@ -1,10 +1,12 @@
 import type { TradeMetrics } from "@/lib/trades/calc";
 import { formatInt, formatMoney, formatSignedMoney, toneOf } from "@/lib/trades/format";
+import type { OpenUnrealised } from "@/lib/quotes/positions";
 import type { OpenRisk } from "@/lib/trades/risk";
 
 interface MetricsProps {
   metrics: TradeMetrics;
   risk: OpenRisk;
+  unrealised: OpenUnrealised;
 }
 
 interface MetricProps {
@@ -30,7 +32,12 @@ function openRiskHint(risk: OpenRisk): string {
   return `${formatInt(risk.unprotectedCount)} صفقة مفتوحة بدون وقف خسارة`;
 }
 
-export function Metrics({ metrics, risk }: MetricsProps) {
+function unrealisedHint(unrealised: OpenUnrealised): string {
+  if (unrealised.openCount === 0) return "لا توجد صفقات مفتوحة";
+  return `بسعر السوق لـ ${formatInt(unrealised.pricedCount)} من ${formatInt(unrealised.openCount)} صفقة مفتوحة`;
+}
+
+export function Metrics({ metrics, risk, unrealised }: MetricsProps) {
   const winRate = metrics.winRate === null ? "—" : `${formatInt(metrics.winRate)}٪`;
   return (
     <section className="metrics" aria-label="ملخص الصفقات">
@@ -38,6 +45,7 @@ export function Metrics({ metrics, risk }: MetricsProps) {
       <Metric label="نسبة الصفقات الرابحة" value={winRate} hint="من الصفقات المغلقة" />
       <Metric label="عدد الصفقات" value={formatInt(metrics.total)} hint="كل الصفقات المسجلة" />
       <Metric label="رأس المال المفتوح" value={formatMoney(metrics.openCapital)} hint="قيمة الشراء للصفقات المفتوحة" />
+      <Metric label="ربح/خسارة غير محققة" value={formatSignedMoney(unrealised.amount)} hint={unrealisedHint(unrealised)} tone={toneOf(unrealised.amount)} />
       <Metric label="المخاطرة المفتوحة" value={formatMoney(risk.amount)} hint={openRiskHint(risk)} tone={risk.unprotectedCount > 0 ? "loss" : ""} />
     </section>
   );

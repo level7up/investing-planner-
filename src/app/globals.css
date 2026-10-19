@@ -236,3 +236,8 @@ fieldset.group legend { padding: 0; font-size: .88rem; font-weight: 600; color: 
 .movement-title { font-size: 1rem; }
 .movement-actions { margin-top: 10px; display: flex; justify-content: flex-end; }
 .movement-auto { font-size: .78rem; }
+
+.market-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; font-size: .8rem; color: var(--muted); }
+.market-status--down { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+.pill--alert-stop { background: #fee2e2; color: var(--loss); margin-inline-start: 6px; }
+.pill--alert-target { background: #d1fae5; color: var(--brand-dark); margin-inline-start: 6px; }

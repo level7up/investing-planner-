@@ -18,6 +18,19 @@ describe("portfolioSummary", () => {
   });
 });
 
+describe("portfolioSummary with quotes", () => {
+  test("values open positions at market price when a quote exists", () => {
+    const summary = portfolioSummary({
+      entries: [makeCash({ amount: 5000 })],
+      trades: [makeTrade(), makeTrade({ id: "fund", symbol: "AZG", buyPrice: 5, quantity: 100 })],
+      gold: [],
+      prices: NO_GOLD_PRICES,
+      quotes: { COMI: { symbol: "COMI", price: 12, changePercent: null } },
+    });
+    expect(summary).toEqual({ cash: 3500, positions: 1700, gold: 0, total: 5200 });
+  });
+});
+
 describe("riskCapital", () => {
   test("uses the portfolio total when positive", () => {
     expect(riskCapital({ cash: 0, positions: 0, gold: 0, total: 1000 })).toBe(1000);

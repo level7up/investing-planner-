@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useOptimistic, useState, useTransition } from "react";
 import { deleteTrade, restoreTrade } from "@/app/actions/trades";
 import { portfolioSummary, riskCapital } from "@/lib/portfolio/calc";
+import { openUnrealised } from "@/lib/quotes/positions";
 import type { PortfolioPageProps } from "@/lib/portfolio/types";
 import { computeMetrics, countByStatus, filterTrades } from "@/lib/trades/calc";
 import { buildCsv } from "@/lib/trades/csv";
@@ -11,6 +12,7 @@ import { openRisk } from "@/lib/trades/risk";
 import { FILTER_OPTIONS } from "@/lib/trades/status";
 import type { Trade, TradeFilter } from "@/lib/trades/types";
 import { AppHeader } from "./AppHeader";
+import { MarketStatus } from "./MarketStatus";
 import { Metrics } from "./Metrics";
 import { RiskSettingsDialog } from "./RiskSettingsDialog";
 import { Toast } from "./Toast";
@@ -32,7 +34,7 @@ function downloadCsv(trades: readonly Trade[]): void {
 }
 
 export function TradeJournal({ data, email }: PortfolioPageProps) {
-  const { settings } = data;
+  const { settings, market } = data;
   const [visibleTrades, removeOptimistically] = useOptimistic(data.trades, (state, id: string) => state.filter((t) => t.id !== id));
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<TradeFilter>("all");
@@ -45,7 +47,8 @@ export function TradeJournal({ data, email }: PortfolioPageProps) {
   const metrics = useMemo(() => computeMetrics(visibleTrades), [visibleTrades]);
   const counts = useMemo(() => countByStatus(visibleTrades), [visibleTrades]);
   const risk = useMemo(() => openRisk(visibleTrades), [visibleTrades]);
-  const portfolio = useMemo(() => portfolioSummary({ ...data, trades: visibleTrades }), [data, visibleTrades]);
+  const portfolio = useMemo(() => portfolioSummary({ ...data, trades: visibleTrades, quotes: market.quotes }), [data, visibleTrades, market]);
+  const unrealised = useMemo(() => openUnrealised(visibleTrades, market.quotes), [visibleTrades, market]);
   const capital = riskCapital(portfolio);
   const sizing = { capital, riskPercent: settings.riskPercent, cash: portfolio.cash };
   const hasNoTrades = visibleTrades.length === 0;
@@ -100,7 +103,8 @@ export function TradeJournal({ data, email }: PortfolioPageProps) {
           <button className="btn btn-primary btn-add-top" type="button" onClick={() => openForm()}>＋ إضافة صفقة</button>
         </header>
 
-        <Metrics metrics={metrics} risk={risk} />
+        <MarketStatus market={market} />
+        <Metrics metrics={metrics} risk={risk} unrealised={unrealised} />
 
         <section className={filtered.length === 0 ? "log is-empty" : "log"} aria-label="سجل الصفقات">
           <div className="log-head">
@@ -122,7 +126,7 @@ export function TradeJournal({ data, email }: PortfolioPageProps) {
             </div>
           </div>
 
-          <TradeList trades={filtered} onEdit={openForm} onDelete={handleDelete} />
+          <TradeList trades={filtered} quotes={market.quotes} onEdit={openForm} onDelete={handleDelete} />
 
           <div className="empty">
             <h3>{hasNoTrades ? "لسه مفيش صفقات" : "مفيش نتائج مطابقة"}</h3>

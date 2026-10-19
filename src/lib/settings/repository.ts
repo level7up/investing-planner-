@@ -11,7 +11,7 @@ export async function loadRiskSettings(supabase: SupabaseClient, userId: string)
     .eq("user_id", userId)
     .maybeSingle<RiskSettingsRow>();
   if (error) {
-    console.error("Loading risk settings failed", { code: error.code, message: error.message });
+    console.error(`Loading risk settings failed: [${error.code}] ${error.message}`);
     return DEFAULT_RISK_SETTINGS;
   }
   return data ? { riskPercent: Number(data.risk_percent) } : DEFAULT_RISK_SETTINGS;

@@ -21,6 +21,10 @@ export function pnl(trade: Trade): number | null {
   return profit(trade.buyPrice, trade.sellPrice, trade.quantity, trade.fees);
 }
 
+export function purchaseValue(trade: Trade): number {
+  return roundMoney(trade.buyPrice * trade.quantity);
+}
+
 export function previewPnl(values: PreviewValues): number | null {
   const buy = Number(values.buyPrice);
   const quantity = Number(values.quantity);

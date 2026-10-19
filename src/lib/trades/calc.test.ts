@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { computeMetrics, countByStatus, filterTrades, pnl, previewPnl } from "./calc";
+import { computeMetrics, countByStatus, filterTrades, pnl, previewPnl, purchaseValue } from "./calc";
 import type { Trade } from "./types";
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
@@ -39,6 +39,12 @@ describe("pnl", () => {
 
   test("returns null for closed trades without a sell price", () => {
     expect(pnl(makeTrade({ sellPrice: null }))).toBeNull();
+  });
+});
+
+describe("purchaseValue", () => {
+  test("is buy price times quantity without fees", () => {
+    expect(purchaseValue(makeTrade({ buyPrice: 1.43, quantity: 10, fees: 3 }))).toBe(14.3);
   });
 });
 

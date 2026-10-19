@@ -18,7 +18,7 @@ export async function getActionSession(): Promise<ActionSession | null> {
 }
 
 export function failed(operation: string, error: { code?: string; message: string }): ActionResult {
-  console.error(`${operation} failed`, { code: error.code, message: error.message });
+  console.error(`${operation} failed: [${error.code}] ${error.message}`);
   return SAVE_FAILED;
 }
 
