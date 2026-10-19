@@ -11,7 +11,7 @@ export type StatusCounts = Record<TradeFilter, number>;
 
 type PreviewValues = Pick<TradeFormValues, "status" | "buyPrice" | "quantity" | "sellPrice" | "fees">;
 
-const roundMoney = (value: number): number => Math.round(value * 100) / 100;
+export const roundMoney = (value: number): number => Math.round(value * 100) / 100;
 
 const profit = (buy: number, sell: number, quantity: number, fees: number): number =>
   roundMoney((sell - buy) * quantity - fees);

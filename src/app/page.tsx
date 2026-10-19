@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { TradeJournal } from "@/components/TradeJournal";
+import { loadRiskSettings } from "@/lib/settings/repository";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { fromRow, TRADE_COLUMNS, type TradeRow } from "@/lib/trades/mapper";
 
@@ -9,17 +10,16 @@ async function JournalLoader() {
   const user = await getCurrentUser(supabase);
   if (!user) redirect("/login");
 
-  const { data, error } = await supabase
-    .from("trades")
-    .select(TRADE_COLUMNS)
-    .order("entry_date", { ascending: false })
-    .returns<TradeRow[]>();
+  const [{ data, error }, settings] = await Promise.all([
+    supabase.from("trades").select(TRADE_COLUMNS).order("entry_date", { ascending: false }).returns<TradeRow[]>(),
+    loadRiskSettings(supabase, user.id),
+  ]);
   if (error) {
     console.error("Loading trades failed", { code: error.code, message: error.message });
     throw new Error("تعذّر تحميل الصفقات");
   }
 
-  return <TradeJournal trades={data.map(fromRow)} email={user.email} />;
+  return <TradeJournal trades={data.map(fromRow)} email={user.email} settings={settings} />;
 }
 
 function JournalSkeleton() {

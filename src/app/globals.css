@@ -46,7 +46,7 @@ button { cursor: pointer; }
 .metric .value { margin: 4px 0 0; font-size: clamp(1.3rem, 5.5vw, 1.8rem); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .metric .hint { margin: 2px 0 0; font-size: .75rem; color: var(--muted); }
 @media (min-width: 900px) {
-  .metrics { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .metrics { grid-template-columns: repeat(5, 1fr); gap: 14px; }
   .metric--wide { grid-column: auto; }
 }
 
@@ -189,3 +189,21 @@ fieldset.group legend { padding: 0; font-size: .88rem; font-weight: 600; color: 
 .auth-switch a { color: var(--brand); font-weight: 700; }
 .skeleton { min-height: 104px; background: linear-gradient(90deg, #eef2f7, #f8fafc, #eef2f7); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.account-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.r-multiple { font-size: .75rem; font-weight: 700; opacity: .8; }
+.risk-panel { background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.risk-panel dl { display: grid; gap: 8px; margin: 0; }
+.risk-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: .88rem; }
+.risk-row dt { color: var(--muted); font-weight: 600; }
+.risk-row dd { margin: 0; font-weight: 800; text-align: end; font-variant-numeric: tabular-nums; }
+.risk-row dd.muted { font-weight: 600; font-size: .8rem; }
+.risk-note { display: block; font-size: .75rem; font-weight: 600; color: var(--muted); }
+.risk-row dd.loss .risk-note { color: var(--loss); }
+.risk-hint { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+.risk-hint.loss { color: var(--loss); }
+.risk-sizing { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .88rem; }
+.sheet--narrow { width: 100%; }
+@media (min-width: 700px) { .sheet.sheet--narrow { width: min(460px, calc(100% - 32px)); } }
+.foot-actions--end { margin-inline-start: auto; }
+@media (max-width: 699px) { .foot-actions--end { width: 100%; } }

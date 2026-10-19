@@ -3,12 +3,15 @@
 import { useCallback, useMemo, useOptimistic, useState, useTransition } from "react";
 import { logout } from "@/app/(auth)/actions";
 import { deleteTrade, restoreTrade } from "@/app/actions/trades";
+import type { RiskSettings } from "@/lib/settings/schema";
 import { computeMetrics, countByStatus, filterTrades } from "@/lib/trades/calc";
 import { buildCsv } from "@/lib/trades/csv";
 import { formatInt, todayISO } from "@/lib/trades/format";
+import { openRisk } from "@/lib/trades/risk";
 import { FILTER_OPTIONS } from "@/lib/trades/status";
 import type { Trade, TradeFilter } from "@/lib/trades/types";
 import { Metrics } from "./Metrics";
+import { RiskSettingsDialog } from "./RiskSettingsDialog";
 import { Toast } from "./Toast";
 import { TradeForm } from "./TradeForm";
 import { TradeList } from "./TradeList";
@@ -17,6 +20,7 @@ import { useToast } from "./useToast";
 interface TradeJournalProps {
   trades: Trade[];
   email: string;
+  settings: RiskSettings;
 }
 
 type FormState = { isOpen: false } | { isOpen: true; trade: Trade | null };
@@ -32,21 +36,29 @@ function downloadCsv(trades: readonly Trade[]): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function TradeJournal({ trades, email }: TradeJournalProps) {
+export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
   const [visibleTrades, removeOptimistically] = useOptimistic(trades, (state, id: string) => state.filter((t) => t.id !== id));
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<TradeFilter>("all");
   const [form, setForm] = useState<FormState>({ isOpen: false });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [, startTransition] = useTransition();
   const { toast, showToast, hideToast } = useToast();
 
   const filtered = useMemo(() => filterTrades(visibleTrades, query, filter), [visibleTrades, query, filter]);
   const metrics = useMemo(() => computeMetrics(visibleTrades), [visibleTrades]);
   const counts = useMemo(() => countByStatus(visibleTrades), [visibleTrades]);
+  const risk = useMemo(() => openRisk(visibleTrades), [visibleTrades]);
   const hasNoTrades = visibleTrades.length === 0;
 
   const openForm = (trade: Trade | null = null) => setForm({ isOpen: true, trade });
   const closeForm = useCallback(() => setForm({ isOpen: false }), []);
+  const closeSettings = useCallback(() => setIsSettingsOpen(false), []);
+
+  const handleSettingsSaved = () => {
+    closeSettings();
+    showToast("تم حفظ إعدادات المخاطرة");
+  };
 
   const handleSaved = (symbol: string) => {
     closeForm();
@@ -78,9 +90,12 @@ export function TradeJournal({ trades, email }: TradeJournalProps) {
       <main className="app">
         <div className="account">
           <span dir="ltr">{email}</span>
-          <form action={logout}>
-            <button className="btn btn-secondary btn-sm" type="submit">تسجيل الخروج</button>
-          </form>
+          <div className="account-actions">
+            <button className="btn btn-secondary btn-sm" type="button" onClick={() => setIsSettingsOpen(true)}>إعدادات المخاطرة</button>
+            <form action={logout}>
+              <button className="btn btn-secondary btn-sm" type="submit">تسجيل الخروج</button>
+            </form>
+          </div>
         </div>
 
         <header className="top">
@@ -91,7 +106,7 @@ export function TradeJournal({ trades, email }: TradeJournalProps) {
           <button className="btn btn-primary btn-add-top" type="button" onClick={() => openForm()}>＋ إضافة صفقة</button>
         </header>
 
-        <Metrics metrics={metrics} />
+        <Metrics metrics={metrics} risk={risk} />
 
         <section className={filtered.length === 0 ? "log is-empty" : "log"} aria-label="سجل الصفقات">
           <div className="log-head">
@@ -131,7 +146,8 @@ export function TradeJournal({ trades, email }: TradeJournalProps) {
 
       <button className="btn btn-primary fab" type="button" onClick={() => openForm()}>＋ صفقة جديدة</button>
       <Toast toast={toast} onDismiss={hideToast} />
-      {form.isOpen && <TradeForm trade={form.trade} onClose={closeForm} onSaved={handleSaved} />}
+      {form.isOpen && <TradeForm trade={form.trade} settings={settings} onClose={closeForm} onSaved={handleSaved} />}
+      {isSettingsOpen && <RiskSettingsDialog settings={settings} onClose={closeSettings} onSaved={handleSettingsSaved} />}
     </>
   );
 }

@@ -38,3 +38,7 @@ export function todayISO(now: Date = new Date()): string {
   const day = String(now.getDate()).padStart(2, "0");
   return `${now.getFullYear()}-${month}-${day}`;
 }
+
+export const formatPercent = (value: number): string => `${moneyFormatter.format(value)}٪`;
+export const formatRatio = (value: number): string => `${moneyFormatter.format(value)}×`;
+export const formatRMultiple = (value: number): string => `${signedFormatter.format(value)}R`;

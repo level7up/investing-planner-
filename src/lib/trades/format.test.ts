@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { emptyFormValues, tradeToFormValues } from "./form";
-import { formatDate, formatOptionalPrice, formatSignedMoney, todayISO, toneOf } from "./format";
+import { formatDate, formatOptionalPrice, formatPercent, formatRatio, formatRMultiple, formatSignedMoney, todayISO, toneOf } from "./format";
 import { parseTradeInput } from "./schema";
 import type { Trade } from "./types";
 
@@ -51,5 +51,13 @@ describe("form values", () => {
     };
     const result = parseTradeInput(tradeToFormValues(trade));
     expect(result).toEqual({ ok: true, data: expect.objectContaining({ symbol: "COMI", buyPrice: 10.25, stopLoss: null, sellPrice: 11, fees: 3.5 }) });
+  });
+});
+
+describe("risk formatters", () => {
+  test("append their unit", () => {
+    expect(formatPercent(1.5)).toContain("٪");
+    expect(formatRatio(2)).toContain("×");
+    expect(formatRMultiple(-0.5)).toMatch(/R$/);
   });
 });

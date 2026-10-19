@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { saveTrade } from "@/app/actions/trades";
+import type { RiskSettings } from "@/lib/settings/schema";
 import { previewPnl } from "@/lib/trades/calc";
 import { emptyFormValues, tradeToFormValues } from "@/lib/trades/form";
 import { formatSignedMoney, toneOf } from "@/lib/trades/format";
 import { STATUS_LABELS } from "@/lib/trades/status";
 import { TRADE_STATUSES, type Trade, type TradeFormValues } from "@/lib/trades/types";
+import { RiskPanel } from "./RiskPanel";
 
 interface TradeFormProps {
   trade: Trade | null;
+  settings: RiskSettings;
   onClose: () => void;
   onSaved: (symbol: string) => void;
 }
@@ -35,7 +38,7 @@ function Preview({ values }: { values: TradeFormValues }) {
   );
 }
 
-export function TradeForm({ trade, onClose, onSaved }: TradeFormProps) {
+export function TradeForm({ trade, settings, onClose, onSaved }: TradeFormProps) {
   const [values, setValues] = useState<TradeFormValues>(() => (trade ? tradeToFormValues(trade) : emptyFormValues()));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -111,6 +114,7 @@ export function TradeForm({ trade, onClose, onSaved }: TradeFormProps) {
                   )}
                 </label>
               ))}
+              <RiskPanel values={values} settings={settings} onApplyQuantity={(quantity) => update("quantity", quantity)} />
               <label className="f span2">سبب الدخول / ملاحظات
                 <textarea rows={3} maxLength={2000} placeholder="مثال: اختراق مقاومة مع ارتفاع حجم التداول" value={values.reason} onChange={(e) => update("reason", e.target.value)} />
               </label>

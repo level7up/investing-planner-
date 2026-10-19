@@ -13,7 +13,7 @@ interface TradeItemProps {
   onDelete: (trade: Trade) => void;
 }
 
-const COLUMNS = ["تاريخ الدخول", "السهم", "الحالة", "سعر الشراء", "الكمية", "وقف الخسارة", "الهدف", "سعر البيع", "الرسوم", "صافي الربح/الخسارة", "إجراءات"];
+const COLUMNS = ["تاريخ الدخول", "السهم", "الحالة", "سعر الشراء", "الكمية", "وقف الخسارة", "الهدف", "سعر البيع", "الرسوم", "المخاطرة", "العائد/المخاطرة", "صافي الربح/الخسارة", "إجراءات"];
 
 function TradeRow({ trade, onEdit, onDelete }: TradeItemProps) {
   const view = toTradeView(trade);
@@ -31,7 +31,12 @@ function TradeRow({ trade, onEdit, onDelete }: TradeItemProps) {
       <td className="num">{view.target}</td>
       <td className="num">{view.sell}</td>
       <td className="num">{view.fees}</td>
-      <td className={`num result ${view.result.className}`}>{view.result.text}</td>
+      <td className="num">{view.risk}</td>
+      <td className="num">{view.rewardToRisk}</td>
+      <td className={`num result ${view.result.className}`}>
+        {view.result.text}
+        {view.result.rMultiple && <div className="r-multiple">{view.result.rMultiple}</div>}
+      </td>
       <td>
         <div className="row-actions">
           <button className="btn btn-secondary btn-sm" type="button" onClick={() => onEdit(trade)} aria-label={`تعديل صفقة ${trade.symbol}`}>تعديل</button>
@@ -51,6 +56,8 @@ function TradeCard({ trade, onEdit, onDelete }: TradeItemProps) {
     ["وقف الخسارة", view.stop],
     ["الهدف", view.target],
     ["الرسوم", view.fees],
+    ["المخاطرة", view.risk],
+    ["العائد/المخاطرة", view.rewardToRisk],
   ];
   return (
     <article className="card">
@@ -62,7 +69,10 @@ function TradeCard({ trade, onEdit, onDelete }: TradeItemProps) {
           </div>
           <p className="card-date">{view.date}</p>
         </div>
-        <div className={`card-result ${view.result.className}`}>{view.result.text}</div>
+        <div className={`card-result ${view.result.className}`}>
+          {view.result.text}
+          {view.result.rMultiple && <div className="r-multiple">{view.result.rMultiple}</div>}
+        </div>
       </div>
       <dl className="stats">
         {stats.map(([label, value]) => (
