@@ -8,6 +8,7 @@ export const STATUS_LABELS: Record<TradeStatus, string> = {
 
 export const ASSET_LABELS: Record<AssetType, string> = {
   stock: "سهم",
+  equity_fund: "صندوق أسهم",
   gold_fund: "صندوق ذهب",
 };
 

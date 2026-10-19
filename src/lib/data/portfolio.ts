@@ -1,7 +1,7 @@
 import "server-only";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { GOLD_COLUMNS, GOLD_PRICE_COLUMNS, goldFromRow, pricesFromRow, type GoldPricesRow, type GoldRow } from "@/lib/gold/mapper";
-import { loadQuotes } from "@/lib/quotes/fetch";
+import { loadMarket } from "@/lib/quotes/market";
 import { loadRiskSettings } from "@/lib/settings/repository";
 import { fromRow, TRADE_COLUMNS, type TradeRow } from "@/lib/trades/mapper";
 import { CASH_COLUMNS, cashFromRow, type CashRow } from "@/lib/wallet/mapper";
@@ -24,13 +24,12 @@ export async function loadPortfolioData(supabase: SupabaseClient, userId: string
     loadRiskSettings(supabase, userId),
   ]);
   const loadedTrades = ensure("trades", trades).map(fromRow);
-  const openSymbols = loadedTrades.filter((t) => t.status === "open").map((t) => t.symbol);
   return {
     trades: loadedTrades,
     gold: ensure("gold", gold).map(goldFromRow),
     entries: ensure("cash", entries).map(cashFromRow),
     prices: pricesFromRow(ensure("gold prices", prices)),
     settings,
-    market: await loadQuotes(openSymbols),
+    market: await loadMarket(loadedTrades),
   };
 }

@@ -1,6 +1,7 @@
 import { roundMoney } from "@/lib/trades/calc";
 import { riskProfile } from "@/lib/trades/risk";
-import type { Trade } from "@/lib/trades/types";
+import { isFundAsset, type Trade } from "@/lib/trades/types";
+import { fundQuoteKey } from "@/lib/funds/startamarkets";
 import type { Quote, QuoteMap } from "./types";
 
 export type PositionAlert = "stop" | "target" | null;
@@ -8,6 +9,7 @@ export type PositionAlert = "stop" | "target" | null;
 export type LivePosition = {
   price: number;
   changePercent: number | null;
+  asOf: string | null;
   marketValue: number;
   unrealised: number;
   unrealisedR: number | null;
@@ -19,6 +21,7 @@ export type LivePosition = {
 export type OpenUnrealised = { amount: number; pricedCount: number; openCount: number };
 
 export function quoteFor(trade: Trade, quotes: QuoteMap): Quote | null {
+  if (isFundAsset(trade.assetType)) return trade.fundId ? (quotes[fundQuoteKey(trade.fundId)] ?? null) : null;
   return quotes[trade.symbol.toUpperCase()] ?? null;
 }
 
@@ -39,6 +42,7 @@ export function livePosition(trade: Trade, quotes: QuoteMap): LivePosition | nul
   return {
     price,
     changePercent: quote.changePercent,
+    asOf: quote.asOf ?? null,
     marketValue: roundMoney(price * trade.quantity),
     unrealised,
     unrealisedR: riskAmount === null ? null : roundMoney(unrealised / riskAmount),

@@ -4,8 +4,9 @@ import { formatMoney, formatPercent } from "@/lib/trades/format";
 const SLOT_COLORS: Record<AllocationKey, string> = {
   cash: "var(--series-1)",
   stocks: "var(--series-2)",
-  goldFunds: "var(--series-3)",
-  gold: "var(--series-4)",
+  equityFunds: "var(--series-3)",
+  goldFunds: "var(--series-4)",
+  gold: "var(--series-5)",
 };
 
 interface AllocationChartProps {

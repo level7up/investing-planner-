@@ -2,6 +2,7 @@ export type Quote = {
   symbol: string;
   price: number;
   changePercent: number | null;
+  asOf?: string | null;
 };
 
 export type QuoteMap = Readonly<Record<string, Quote>>;

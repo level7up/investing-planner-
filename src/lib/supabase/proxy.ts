@@ -4,6 +4,7 @@ import { getSupabaseEnv } from "./env";
 
 const AUTH_PAGES = ["/login", "/register"];
 const PUBLIC_PREFIX = "/auth/";
+const API_PREFIX = "/api/";
 
 function redirectKeepingCookies(request: NextRequest, source: NextResponse, pathname: string): NextResponse {
   const redirect = NextResponse.redirect(new URL(pathname, request.url));
@@ -33,6 +34,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const isAuthPage = AUTH_PAGES.includes(pathname);
   const isPublic = isAuthPage || pathname.startsWith(PUBLIC_PREFIX);
 
+  if (!isSignedIn && pathname.startsWith(API_PREFIX)) return NextResponse.json({ error: "انتهت الجلسة. سجّل الدخول مرة أخرى." }, { status: 401 });
   if (!isSignedIn && !isPublic) return redirectKeepingCookies(request, response, "/login");
   if (isSignedIn && isAuthPage) return redirectKeepingCookies(request, response, "/");
   return response;

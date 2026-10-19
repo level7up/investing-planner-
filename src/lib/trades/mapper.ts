@@ -6,6 +6,7 @@ type Numeric = number | string;
 export type TradeRow = {
   id: string;
   asset_type: string;
+  fund_id: string | null;
   entry_date: string;
   exit_date: string | null;
   symbol: string;
@@ -27,7 +28,7 @@ export type TradeWriteRow = Omit<TradeRow, "id" | "updated_at" | "reason" | "sta
 };
 
 export const TRADE_COLUMNS =
-  "id, asset_type, entry_date, exit_date, symbol, status, buy_price, quantity, stop_loss, target_price, sell_price, fees, reason, updated_at";
+  "id, asset_type, fund_id, entry_date, exit_date, symbol, status, buy_price, quantity, stop_loss, target_price, sell_price, fees, reason, updated_at";
 
 const toNullableNumber = (value: Numeric | null): number | null => (value === null ? null : Number(value));
 
@@ -38,6 +39,7 @@ export function fromRow(row: TradeRow): Trade {
   return {
     id: row.id,
     assetType: oneOf(ASSET_TYPES, row.asset_type, "stock"),
+    fundId: row.fund_id,
     entryDate: row.entry_date,
     exitDate: row.exit_date,
     symbol: row.symbol,
@@ -56,6 +58,7 @@ export function fromRow(row: TradeRow): Trade {
 export function toRow(input: TradeInput): TradeWriteRow {
   return {
     asset_type: input.assetType,
+    fund_id: input.fundId,
     entry_date: input.entryDate,
     exit_date: input.exitDate,
     symbol: input.symbol,

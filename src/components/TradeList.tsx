@@ -38,7 +38,7 @@ const COLUMNS = [
 function SymbolBadges({ trade, view }: { trade: Trade; view: TradeView }) {
   return (
     <>
-      {trade.assetType === "gold_fund" && <span className="pill pill--gold">{ASSET_LABELS.gold_fund}</span>}
+      {trade.assetType !== "stock" && <span className="pill pill--gold">{ASSET_LABELS[trade.assetType]}</span>}
       {view.alert && <span className={`pill pill--alert-${view.alert}`}>{ALERT_LABELS[view.alert]}</span>}
     </>
   );
@@ -49,7 +49,7 @@ function CurrentPrice({ view }: { view: TradeView }) {
   return (
     <>
       {view.current.price}
-      {view.current.change && <div className={`r-multiple ${view.current.changeClass}`}>{view.current.change}</div>}
+      {view.current.note && <div className={`r-multiple ${view.current.noteClass}`}>{view.current.note}</div>}
     </>
   );
 }

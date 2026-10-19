@@ -12,7 +12,7 @@ export type RealisedEvent = { date: string; amount: number; label: string };
 export type CumulativePoint = { date: string; value: number; delta: number };
 export type MonthTotal = { month: string; total: number };
 export type SymbolTotal = { label: string; total: number; count: number };
-export type AllocationKey = "cash" | "stocks" | "goldFunds" | "gold";
+export type AllocationKey = "cash" | "stocks" | "equityFunds" | "goldFunds" | "gold";
 export type AllocationPart = { key: AllocationKey; label: string; value: number; share: number };
 
 function tradeEvent(trade: Trade): RealisedEvent | null {
@@ -88,6 +88,7 @@ export function allocation(sources: PortfolioSources): AllocationPart[] {
   const candidates: Omit<AllocationPart, "share">[] = [
     { key: "cash", label: "نقدية", value: Math.max(0, cashBalance(sources)) },
     { key: "stocks", label: "أسهم", value: openValue(sources, "stock") },
+    { key: "equityFunds", label: "صناديق أسهم", value: openValue(sources, "equity_fund") },
     { key: "goldFunds", label: "صناديق ذهب", value: openValue(sources, "gold_fund") },
     { key: "gold", label: "ذهب", value: goldSummary(sources.gold, sources.prices).heldValue },
   ];

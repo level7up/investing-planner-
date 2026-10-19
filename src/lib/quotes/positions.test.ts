@@ -13,6 +13,7 @@ describe("livePosition", () => {
     expect(livePosition(trade, quotes)).toEqual({
       price: 12,
       changePercent: 1.5,
+      asOf: null,
       marketValue: 1200,
       unrealised: 190,
       unrealisedR: 1.73,
@@ -38,6 +39,15 @@ describe("livePosition", () => {
   test("returns null for closed trades or symbols without a quote", () => {
     expect(livePosition(makeTrade({ status: "closed", sellPrice: 11 }), quotes)).toBeNull();
     expect(livePosition(makeTrade({ symbol: "NOPE" }), quotes)).toBeNull();
+  });
+});
+
+describe("fund trades", () => {
+  test("look up their quote by fund id rather than by name", () => {
+    const fundQuotes = { ...quotes, "FUND:5989": { symbol: "FUND:5989", price: 24, changePercent: null, asOf: "2026-10-18" } };
+    const trade = makeTrade({ assetType: "gold_fund", fundId: "5989", symbol: "Azimut Gold AZ Fund", buyPrice: 20, quantity: 10.5 });
+    expect(livePosition(trade, fundQuotes)).toMatchObject({ price: 24, asOf: "2026-10-18", marketValue: 252, unrealised: 42 });
+    expect(livePosition({ ...trade, fundId: null }, fundQuotes)).toBeNull();
   });
 });
 

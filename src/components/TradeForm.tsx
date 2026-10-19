@@ -6,8 +6,10 @@ import { previewPnl } from "@/lib/trades/calc";
 import { emptyFormValues, tradeToFormValues } from "@/lib/trades/form";
 import { formatSignedMoney, todayISO, toneOf } from "@/lib/trades/format";
 import { ASSET_LABELS, STATUS_LABELS } from "@/lib/trades/status";
-import { ASSET_TYPES, TRADE_STATUSES, type Trade, type TradeFormValues, type TradeStatus } from "@/lib/trades/types";
+import type { FundSummary } from "@/lib/funds/startamarkets";
+import { ASSET_TYPES, isFundAsset, TRADE_STATUSES, type AssetType, type Trade, type TradeFormValues, type TradeStatus } from "@/lib/trades/types";
 import { tradeCashOutflow } from "@/lib/wallet/calc";
+import { fundDisplayName, FundPicker } from "./FundPicker";
 import { RiskPanel, type SizingContext } from "./RiskPanel";
 import { DateField, NotesField, NumberField, Segmented } from "./ui/fields";
 import { Modal } from "./ui/Modal";
@@ -41,12 +43,30 @@ export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
   );
   const symbolRef = useRef<HTMLInputElement>(null);
   const isClosed = values.status === "closed";
-  const isFund = values.assetType === "gold_fund";
+  const isFund = isFundAsset(values.assetType);
   const availableCash = sizing.cash + (trade ? tradeCashOutflow(trade) : 0);
 
   useEffect(() => {
     if (!trade && matchMedia("(pointer: fine)").matches) symbolRef.current?.focus();
   }, [trade]);
+
+  const changeAssetType = (assetType: AssetType) =>
+    setValues((current) => ({
+      ...current,
+      assetType,
+      fundId: isFundAsset(assetType) && isFundAsset(current.assetType) ? current.fundId : "",
+      symbol: isFundAsset(assetType) === isFundAsset(current.assetType) ? current.symbol : "",
+    }));
+
+  const pickFund = (fund: FundSummary) =>
+    setValues((current) => ({
+      ...current,
+      fundId: fund.id,
+      symbol: fundDisplayName(fund),
+      buyPrice: current.buyPrice === "" ? String(fund.nav) : current.buyPrice,
+    }));
+
+  const renameFund = (symbol: string) => setValues((current) => ({ ...current, symbol, fundId: "" }));
 
   const changeStatus = (status: TradeStatus) =>
     setValues((current) => ({
@@ -65,14 +85,18 @@ export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
       onSubmit={submit}
       footerExtra={<Preview values={values} />}
     >
-      <Segmented legend="نوع الأصل" name="assetType" options={ASSET_OPTIONS} value={values.assetType} onChange={(v) => update("assetType", v)} />
+      <Segmented legend="نوع الأصل" name="assetType" options={ASSET_OPTIONS} value={values.assetType} onChange={changeAssetType} />
       <DateField label="تاريخ الدخول" value={values.entryDate} onChange={(v) => update("entryDate", v)} />
-      <label className="f">{isFund ? "رمز / اسم الصندوق" : "رمز / اسم السهم"}
-        <input ref={symbolRef} maxLength={30} required placeholder={isFund ? "مثال: AZG" : "مثال: COMI"} autoComplete="off" autoCapitalize="characters" value={values.symbol} onChange={(e) => update("symbol", e.target.value)} />
-      </label>
+      {isFund ? (
+        <FundPicker name={values.symbol} fundId={values.fundId} onNameChange={renameFund} onPick={pickFund} />
+      ) : (
+        <label className="f">رمز / اسم السهم
+          <input ref={symbolRef} maxLength={30} required placeholder="مثال: COMI" autoComplete="off" autoCapitalize="characters" value={values.symbol} onChange={(e) => update("symbol", e.target.value)} />
+        </label>
+      )}
       <Segmented legend="حالة الصفقة" name="status" options={STATUS_OPTIONS} value={values.status} onChange={changeStatus} />
-      <NumberField label="سعر الشراء (ج.م)" placeholder="0.00" isRequired value={values.buyPrice} onChange={(v) => update("buyPrice", v)} />
-      <NumberField label={isFund ? "عدد الوحدات" : "عدد الأسهم"} isInteger isRequired value={values.quantity} onChange={(v) => update("quantity", v)} />
+      <NumberField label={isFund ? "سعر شراء الوثيقة" : "سعر الشراء (ج.م)"} placeholder="0.00" isRequired value={values.buyPrice} onChange={(v) => update("buyPrice", v)} />
+      <NumberField label={isFund ? "عدد الوثائق" : "عدد الأسهم"} isInteger={!isFund} isRequired value={values.quantity} onChange={(v) => update("quantity", v)} />
       <NumberField label="سعر وقف الخسارة" placeholder="اختياري" value={values.stopLoss} onChange={(v) => update("stopLoss", v)} />
       <NumberField label="الهدف السعري" placeholder="اختياري" value={values.targetPrice} onChange={(v) => update("targetPrice", v)} />
       <NumberField

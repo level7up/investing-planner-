@@ -25,7 +25,7 @@ export type TradeView = {
   buy: string;
   quantity: string;
   purchaseValue: string;
-  current: { price: string; change: string | null; changeClass: string } | null;
+  current: { price: string; note: string | null; noteClass: string } | null;
   alert: PositionAlert;
   stop: string;
   target: string;
@@ -67,8 +67,8 @@ export function toTradeView(trade: Trade, quotes: QuoteMap): TradeView {
     purchaseValue: formatAmount(purchaseValue(trade)),
     current: live && {
       price: formatPrice(live.price),
-      change: live.changePercent === null ? null : formatSignedPercent(live.changePercent),
-      changeClass: live.changePercent === null ? "" : toneOf(live.changePercent),
+      note: live.changePercent !== null ? formatSignedPercent(live.changePercent) : live.asOf ? `سعر ${formatDate(live.asOf)}` : null,
+      noteClass: live.changePercent === null ? "muted" : toneOf(live.changePercent),
     },
     alert: live?.alert ?? null,
     stop: formatOptionalPrice(trade.stopLoss),

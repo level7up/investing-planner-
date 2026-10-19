@@ -6,6 +6,7 @@ const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   id: "t1",
   entryDate: "2026-10-01",
   assetType: "stock",
+  fundId: null,
   exitDate: null,
   symbol: "COMI",
   status: "open",
@@ -47,6 +48,7 @@ describe("riskProfile", () => {
 describe("riskFromFormValues", () => {
   const values: TradeFormValues = {
     assetType: "stock",
+    fundId: "",
     entryDate: "2026-10-01",
     exitDate: "",
     symbol: "COMI",

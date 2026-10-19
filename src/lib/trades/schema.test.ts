@@ -4,6 +4,7 @@ import type { TradeFormValues } from "./types";
 
 const validInput: TradeFormValues = {
   assetType: "stock",
+  fundId: "",
   entryDate: "2026-10-01",
   exitDate: "2026-10-03",
   symbol: " comi ",
@@ -24,6 +25,7 @@ describe("parseTradeInput", () => {
       ok: true,
       data: {
         assetType: "stock",
+        fundId: null,
         entryDate: "2026-10-01",
         exitDate: null,
         symbol: "COMI",
@@ -57,6 +59,20 @@ describe("parseTradeInput", () => {
   test("accepts gold fund trades", () => {
     const result = parseTradeInput({ ...validInput, assetType: "gold_fund" });
     expect(result.ok && result.data.assetType).toBe("gold_fund");
+  });
+
+  test("links fund trades to a fund, keeps the name's case and allows fractional units", () => {
+    const result = parseTradeInput({ ...validInput, assetType: "equity_fund", fundId: "5753", symbol: "Azimut Opportunities", quantity: "41.6235" });
+    expect(result.ok && result.data).toMatchObject({ assetType: "equity_fund", fundId: "5753", symbol: "Azimut Opportunities", quantity: 41.6235 });
+  });
+
+  test("drops the fund link for stocks and rejects malformed fund ids", () => {
+    const stock = parseTradeInput({ ...validInput, fundId: "5753" });
+    expect(stock.ok && stock.data.fundId).toBeNull();
+    expect(parseTradeInput({ ...validInput, assetType: "equity_fund", fundId: "12ab" }).ok).toBe(false);
+    expect(parseTradeInput({ ...validInput, assetType: "equity_fund", quantity: "1.23456" }).ok).toBe(false);
+    expect(parseTradeInput({ ...validInput, assetType: "equity_fund", quantity: "0.0007" }).ok).toBe(true);
+    expect(parseTradeInput({ ...validInput, assetType: "equity_fund", quantity: "4.1003" }).ok).toBe(true);
   });
 
   test.each([

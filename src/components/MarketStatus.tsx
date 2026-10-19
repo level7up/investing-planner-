@@ -10,9 +10,9 @@ interface MarketStatusProps {
 }
 
 function statusText(market: QuoteSnapshot): string {
-  if (!market.isAvailable) return "تعذّر جلب أسعار البورصة الآن — القيم المعروضة بسعر الشراء.";
+  if (!market.isAvailable) return "تعذّر جلب بعض الأسعار الآن — ما لم يُحدَّث يظهر بسعر الشراء.";
   if (!market.fetchedAt) return "لا توجد صفقات مفتوحة لجلب أسعارها.";
-  return `أسعار البورصة متأخرة 15 دقيقة · آخر تحديث ${cairoTimeFormatter.format(new Date(market.fetchedAt))}`;
+  return `أسعار الأسهم متأخرة 15 دقيقة والصناديق بآخر سعر معلن · آخر تحديث ${cairoTimeFormatter.format(new Date(market.fetchedAt))}`;
 }
 
 export function MarketStatus({ market }: MarketStatusProps) {

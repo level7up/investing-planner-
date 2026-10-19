@@ -6,6 +6,7 @@ describe("fromRow", () => {
     const trade = fromRow({
       id: "id-1",
       asset_type: "gold_fund",
+      fund_id: "5989",
       entry_date: "2026-10-01",
       exit_date: "2026-10-04",
       symbol: "COMI",
@@ -22,6 +23,7 @@ describe("fromRow", () => {
     expect(trade).toEqual({
       id: "id-1",
       assetType: "gold_fund",
+      fundId: "5989",
       entryDate: "2026-10-01",
       exitDate: "2026-10-04",
       symbol: "COMI",
@@ -41,6 +43,7 @@ describe("fromRow", () => {
     const trade = fromRow({
       id: "id-2",
       asset_type: "bonds",
+      fund_id: null,
       entry_date: "2026-10-01",
       exit_date: null,
       symbol: "X",
@@ -65,6 +68,7 @@ describe("toRow", () => {
     expect(
       toRow({
         assetType: "stock",
+        fundId: null,
         entryDate: "2026-10-01",
         exitDate: null,
         symbol: "COMI",
@@ -79,6 +83,7 @@ describe("toRow", () => {
       }),
     ).toEqual({
       asset_type: "stock",
+      fund_id: null,
       entry_date: "2026-10-01",
       exit_date: null,
       symbol: "COMI",
