@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f6fa" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="الصفقات" />
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAC8UlEQVR42u3dQW7qMBCAYUDhjO1Rygm4Cndk0y0LhEhiO+OZ7989qXqpyMdgnCg9L38/J+ldFy+B4BAcgkNwCA7BITgEh+AQHBIcgkNwCA7BITgEh+AQHIJDgkNwCA7BITgEh+AQHIJDcEhwCA7BITgEh+AQHJqsxUswb8/74/Wf19tv2///7DmkCVh0IgJHHhbNiVhzJJSx6ifhEBzGRtPhAYfgKDY2mgwPOASH4BAcgkP71pU790nhSCvD5CCj19iAw8yAo56MJldl3ezj0wSOAjW/EwyO6cdGcxPWHGTAQQYcZMBBxjgZcJABh+AwNuAgAw4yDpUBBxlwkAEHGXAUkuGrrCKODTh8oMBBBhxkwEEGHGTAQUZMGXAIDmMDDjLgIGNQS7IzcfgLnUbGaerHW495/ndZGbPiGPn877IyplxzDH7+d8BjwZG8+GNjPhzjn/9d8wPF5CAjEY5Dnv9dVobJQUZ5HM/7o/n8SC+j1uRoSKSCjJlwNDyvKfckejTHDmmn07ntDV1kbMyBo/cbfdXJqyMjOo6R8/+bs1hKRmgch6wMPpzOajLi4jh2zfh6Xrf9JglkBMUx+7eJHDJOAe8Ea/XXAnxfzTY5NpzRz2/T8UTSjI1YOJrLGE8kk4xAOPrJGEYkmYwoOEZ+Swy12QpHIBmdiKSUcTr8wttRO0vX22/WM5oEx+F7jogExRFnNxqRWDgCXqfgIwSOsFewth0osaoLGQqBI76MtUfMbXeJycLMqDI55pLx/aHT8+2+QzrvzAj4/I8MOPZsTkd73aM9OWhiHK1u1VGqBen+S1lk5FyQkgFHlN0FTfOxkmn5qSiTg4zkODaPDTJMDsEhOASH1AKHu6fgEBxDhoexYXIIjpXDwNiYqHH3c2BRHcdbIljAIWsOwSHBITgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDcAgOwSE4BIfgkOAQHIJDcAgOwSE4BIfgEBwSHIJDcAgOwSE4BIfgEByCQ4X7B0J8UZYHU8z5AAAAAElFTkSuQmCC" />
+  <title>سجل صفقات المضاربة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f6fa; --surface: #fff; --ink: #172033; --muted: #5a6b82;
+      --line: #e2e8f0; --line-strong: #c7d1de;
+      --brand: #047857; --brand-dark: #065f46; --brand-tint: #ecfdf5;
+      --gain: #047857; --loss: #b91c1c;
+      --radius: 16px;
+      --font: "Cairo", Tahoma, "Segoe UI", system-ui, sans-serif;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+    body.modal-open { overflow: hidden; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid rgba(4, 120, 87, .35); outline-offset: 2px; }
+
+    .app { max-width: 1200px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right)) calc(104px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+    @media (min-width: 900px) { .app { padding-top: 32px; padding-bottom: 40px; } }
+
+    /* Header */
+    .top { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+    .top h1 { margin: 0; font-size: clamp(1.55rem, 6vw, 2.2rem); font-weight: 800; line-height: 1.3; }
+    .top p { margin: 6px 0 0; color: var(--muted); font-size: .92rem; max-width: 42rem; }
+    .btn-add-top { display: none; }
+    @media (min-width: 900px) {
+      .top { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+      .btn-add-top { display: inline-flex; }
+    }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid transparent; font-weight: 700; font-size: .95rem; transition: background .15s, border-color .15s; white-space: nowrap; }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-secondary { background: #fff; border-color: var(--line-strong); color: #334155; }
+    .btn-secondary:hover { background: #f1f5f9; }
+    .btn-danger { background: #fff; border-color: #fecaca; color: var(--loss); }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { min-height: 36px; padding: 0 12px; font-size: .85rem; }
+
+    .fab { position: fixed; inset-inline-end: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 20; min-height: 54px; padding: 0 22px; border-radius: 999px; box-shadow: 0 8px 20px rgba(4, 120, 87, .35); }
+    @media (min-width: 900px) { .fab { display: none; } }
+
+    /* Metrics */
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+    .metric { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; min-width: 0; }
+    .metric--wide { grid-column: 1 / -1; }
+    .metric .label { margin: 0; font-size: .82rem; color: var(--muted); font-weight: 600; }
+    .metric .value { margin: 4px 0 0; font-size: clamp(1.3rem, 5.5vw, 1.8rem); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+    .metric .hint { margin: 2px 0 0; font-size: .75rem; color: var(--muted); }
+    @media (min-width: 900px) {
+      .metrics { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .metric--wide { grid-column: auto; }
+    }
+
+    .gain { color: var(--gain); }
+    .loss { color: var(--loss); }
+    .muted { color: var(--muted); }
+
+    /* Log header + toolbar */
+    .log-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .log-head h2 { margin: 0; font-size: 1.2rem; font-weight: 800; }
+    .log-head p { margin: 0; font-size: .82rem; color: var(--muted); }
+    .toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .search { width: 100%; min-height: 48px; padding: 10px 14px; font-size: 16px; background: #fff; border: 1px solid var(--line-strong); border-radius: 12px; }
+    .search::placeholder { color: #94a3b8; }
+    .search:focus { border-color: var(--brand); outline: 3px solid rgba(4, 120, 87, .18); outline-offset: 0; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; font-weight: 600; font-size: .9rem; color: #334155; }
+    .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .chip .count { margin-inline-start: 4px; opacity: .7; }
+    @media (min-width: 700px) {
+      .toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
+      .search { max-width: 300px; }
+    }
+
+    /* Pills */
+    .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 1px 10px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+    .pill--open { background: #fef3c7; color: #92400e; }
+    .pill--closed { background: #d1fae5; color: #065f46; }
+    .pill--cancelled { background: #e2e8f0; color: #475569; }
+
+    /* Cards (mobile) */
+    .cards { display: grid; gap: 10px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .card .sym { font-size: 1.15rem; font-weight: 800; line-height: 1.3; }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .card-date { margin: 2px 0 0; color: var(--muted); font-size: .82rem; }
+    .card-result { font-size: 1.15rem; font-weight: 800; text-align: end; line-height: 1.3; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
+    .stats dt { font-size: .72rem; color: var(--muted); }
+    .stats dd { margin: 0; font-weight: 700; font-size: .95rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .card-note { margin: 10px 0 0; font-size: .85rem; color: #334155; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+
+    /* Table (desktop) */
+    .table-wrap { display: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th { padding: .8rem 1rem; text-align: start; background: #f1f5f9; color: #475569; font-weight: 700; font-size: .82rem; white-space: nowrap; }
+    td { padding: .85rem 1rem; border-top: 1px solid var(--line); white-space: nowrap; color: #334155; vertical-align: middle; }
+    tbody tr:hover { background: #f8fafc; }
+    td.num { font-variant-numeric: tabular-nums; }
+    td .sym { font-weight: 800; color: var(--ink); }
+    td .note { margin-top: 2px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-size: .78rem; color: var(--muted); }
+    td.result { font-weight: 800; }
+    .row-actions { display: flex; gap: 8px; }
+    @media (min-width: 900px) {
+      .table-wrap { display: block; }
+      .cards { display: none; }
+    }
+
+    /* Empty state */
+    .empty { display: none; text-align: center; padding: 40px 20px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--radius); }
+    .empty h3 { margin: 0; font-size: 1.05rem; }
+    .empty p { margin: 6px 0 16px; color: var(--muted); font-size: .9rem; }
+    .is-empty .empty { display: block; }
+    .is-empty .table-wrap, .is-empty .cards { display: none !important; }
+
+    .foot-note { margin: 22px 0 0; font-size: .78rem; line-height: 1.8; color: var(--muted); }
+
+    /* Form sheet */
+    dialog.sheet { border: 0; padding: 0; background: var(--surface); color: var(--ink); width: 100%; max-width: 100%; max-height: 92vh; max-height: 92dvh; margin: auto 0 0; border-radius: 20px 20px 0 0; overflow: hidden; }
+    dialog.sheet[open] { display: flex; flex-direction: column; }
+    dialog.sheet::backdrop { background: rgba(15, 23, 42, .5); }
+    #tradeForm { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .sheet-head h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+    .icon-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line-strong); background: #fff; font-size: 1.05rem; line-height: 1; }
+    .icon-btn:hover { background: #f1f5f9; }
+    .sheet-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 18px; }
+    .sheet-foot { display: flex; flex-direction: column; gap: 10px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; }
+    .preview { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; background: var(--brand-tint); border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 14px; }
+    .preview > span { font-size: .82rem; color: #065f46; font-weight: 600; }
+    .preview strong { font-size: 1.1rem; font-weight: 800; }
+    .preview strong.is-muted { font-size: .85rem; font-weight: 600; color: var(--muted); }
+    .foot-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+    @media (min-width: 700px) {
+      dialog.sheet { width: min(720px, calc(100% - 32px)); margin: auto; border-radius: 20px; }
+      .sheet-foot { flex-direction: row; align-items: center; justify-content: space-between; }
+      .preview { flex: 1; }
+      .foot-actions { grid-template-columns: auto auto; }
+    }
+    @media (max-width: 699px) {
+      dialog.sheet[open] { animation: sheet-in .22s ease-out; }
+    }
+    @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; }
+    .span2 { grid-column: 1 / -1; }
+    .f { display: block; min-width: 0; font-size: .88rem; font-weight: 600; color: #334155; }
+    .f input, .f select, .f textarea { display: block; width: 100%; min-width: 0; max-width: 100%; margin-top: 6px; min-height: 48px; padding: 10px 12px; font-size: 16px; font-weight: 400; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 12px; }
+    .f textarea { min-height: 92px; resize: vertical; }
+    .f input::placeholder, .f textarea::placeholder { color: #94a3b8; }
+    .f input:focus, .f textarea:focus { border-color: var(--brand); outline: 3px solid rgba(4, 120, 87, .18); outline-offset: 0; }
+    .f .hint { display: block; margin-top: 4px; font-size: .75rem; font-weight: 400; color: var(--muted); }
+    .f .hint.need { color: #b45309; font-weight: 600; }
+    fieldset.group { border: 0; padding: 0; margin: 0; min-width: 0; }
+    fieldset.group legend { padding: 0; font-size: .88rem; font-weight: 600; color: #334155; }
+    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 4px; margin-top: 6px; background: #eef2f7; border-radius: 12px; }
+    .seg label { position: relative; display: block; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg span { display: flex; align-items: center; justify-content: center; min-height: 42px; border-radius: 9px; font-weight: 700; font-size: .9rem; color: #475569; cursor: pointer; }
+    .seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(15, 23, 42, .15); }
+    .seg input:focus-visible + span { outline: 3px solid rgba(4, 120, 87, .35); }
+
+    /* Toast */
+    .toast { position: fixed; z-index: 40; inset-inline: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 16px; background: #172033; color: #fff; border-radius: 12px; font-size: .9rem; box-shadow: 0 10px 30px rgba(15, 23, 42, .3); }
+    .toast[hidden] { display: none; }
+    .toast button { background: none; border: 0; color: #6ee7b7; font-weight: 800; padding: 0 6px; min-height: 44px; }
+    @media (min-width: 900px) {
+      .toast { inset-inline-start: auto; inset-inline-end: 24px; bottom: 24px; max-width: 380px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div>
+        <h1>سجل صفقات المضاربة</h1>
+        <p>سجّل الصفقة وخطة الخروج، ثم حدّثها بعد البيع لحساب النتيجة بعد الرسوم. بياناتك محفوظة على هذا المتصفح فقط.</p>
+      </div>
+      <button id="addTopBtn" class="btn btn-primary btn-add-top" type="button">＋ إضافة صفقة</button>
+    </header>
+
+    <section class="metrics" aria-label="ملخص الصفقات">
+      <article class="metric metric--wide"><p class="label">صافي النتائج المحققة</p><p id="netProfit" class="value">0 ج.م</p><p class="hint">للصفقات المغلقة فقط</p></article>
+      <article class="metric"><p class="label">نسبة الصفقات الرابحة</p><p id="winRate" class="value">—</p><p class="hint">من الصفقات المغلقة</p></article>
+      <article class="metric"><p class="label">عدد الصفقات</p><p id="totalTrades" class="value">0</p><p class="hint">كل الصفقات المسجلة</p></article>
+      <article class="metric metric--wide"><p class="label">رأس المال المفتوح</p><p id="openCapital" class="value">0 ج.م</p><p class="hint">قيمة الشراء للصفقات المفتوحة</p></article>
+    </section>
+
+    <section id="log" aria-label="سجل الصفقات">
+      <div class="log-head">
+        <div><h2>سجل الصفقات</h2><p id="shownCount">0 صفقة</p></div>
+        <button id="exportBtn" class="btn btn-secondary btn-sm" type="button">تصدير CSV</button>
+      </div>
+
+      <div class="toolbar">
+        <input id="searchInput" class="search" type="search" placeholder="ابحث عن سهم..." aria-label="بحث عن سهم" autocomplete="off" enterkeyhint="search" />
+        <div id="chips" class="chips" role="group" aria-label="فلترة حسب الحالة">
+          <button class="chip" type="button" data-filter="all" aria-pressed="true">الكل <span class="count" data-count="all"></span></button>
+          <button class="chip" type="button" data-filter="open" aria-pressed="false">مفتوحة <span class="count" data-count="open"></span></button>
+          <button class="chip" type="button" data-filter="closed" aria-pressed="false">مغلقة <span class="count" data-count="closed"></span></button>
+          <button class="chip" type="button" data-filter="cancelled" aria-pressed="false">ملغاة <span class="count" data-count="cancelled"></span></button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>تاريخ الدخول</th><th>السهم</th><th>الحالة</th><th>سعر الشراء</th><th>الكمية</th><th>وقف الخسارة</th><th>الهدف</th><th>سعر البيع</th><th>الرسوم</th><th>صافي الربح/الخسارة</th><th>إجراءات</th>
+          </tr></thead>
+          <tbody id="tradesBody"></tbody>
+        </table>
+      </div>
+      <div id="cards" class="cards"></div>
+
+      <div id="emptyState" class="empty">
+        <h3 id="emptyTitle">لسه مفيش صفقات</h3>
+        <p id="emptyText">ابدأ بإضافة أول صفقة، وسجل سبب الدخول ومستويات الخروج.</p>
+        <button id="emptyAddBtn" class="btn btn-primary" type="button">إضافة أول صفقة</button>
+        <button id="clearFilterBtn" class="btn btn-secondary" type="button" hidden>مسح البحث والفلتر</button>
+      </div>
+    </section>
+
+    <p class="foot-note">ملاحظة: البيانات محفوظة محليًا في هذا المتصفح باستخدام LocalStorage، وليست متزامنة مع ثاندر أو أي حساب آخر. مسح بيانات المتصفح قد يؤدي إلى فقدان السجل؛ صدّر CSV للاحتفاظ بنسخة. الحساب لا يشمل أي ضرائب أو رسوم إضافية لم تُدخلها يدويًا.</p>
+  </main>
+
+  <button id="fab" class="btn btn-primary fab" type="button">＋ صفقة جديدة</button>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span id="toastMsg"></span>
+    <button id="toastUndo" type="button" hidden>تراجع</button>
+  </div>
+
+  <dialog id="tradeDialog" class="sheet" aria-labelledby="formTitle">
+    <form id="tradeForm">
+      <div class="sheet-head">
+        <h2 id="formTitle">إضافة صفقة جديدة</h2>
+        <button id="cancelBtn" class="icon-btn" type="button" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="sheet-body">
+        <input type="hidden" id="tradeId" />
+        <div class="grid">
+          <label class="f">تاريخ الدخول<input id="entryDate" type="date" required /></label>
+          <label class="f">رمز / اسم السهم<input id="symbol" maxlength="30" required placeholder="مثال: COMI" autocomplete="off" autocapitalize="characters" /></label>
+
+          <fieldset class="group span2">
+            <legend>حالة الصفقة</legend>
+            <div class="seg">
+              <label><input type="radio" name="status" value="open" checked /><span>مفتوحة</span></label>
+              <label><input type="radio" name="status" value="closed" /><span>مغلقة</span></label>
+              <label><input type="radio" name="status" value="cancelled" /><span>ملغاة</span></label>
+            </div>
+          </fieldset>
+
+          <label class="f">سعر الشراء (ج.م)<input id="buyPrice" type="number" inputmode="decimal" min="0" step="any" required placeholder="0.00" /></label>
+          <label class="f">عدد الأسهم<input id="quantity" type="number" inputmode="numeric" min="1" step="1" required placeholder="0" /></label>
+          <label class="f">سعر وقف الخسارة<input id="stopLoss" type="number" inputmode="decimal" min="0" step="any" placeholder="اختياري" /></label>
+          <label class="f">الهدف السعري<input id="targetPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="اختياري" /></label>
+          <label class="f">سعر البيع<input id="sellPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00" /><span id="sellHint" class="hint">اتركه فارغًا لو الصفقة مفتوحة</span></label>
+          <label class="f">إجمالي الرسوم (شراء + بيع)<input id="fees" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
+          <label class="f span2">سبب الدخول / ملاحظات<textarea id="reason" rows="3" placeholder="مثال: اختراق مقاومة مع ارتفاع حجم التداول"></textarea></label>
+        </div>
+      </div>
+      <div class="sheet-foot">
+        <div class="preview"><span>النتيجة التقديرية بعد الرسوم</span><strong id="previewPnl" class="is-muted">—</strong></div>
+        <div class="foot-actions">
+          <button type="button" id="cancelFormBtn" class="btn btn-secondary">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ الصفقة</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = 'trade-journal-eg-v1';
+    const $ = (id) => document.getElementById(id);
+
+    const makeFmt = (max, extra = {}) => new Intl.NumberFormat('ar-EG', { maximumFractionDigits: max, ...extra });
+    const fmtMoney = makeFmt(2), fmtPrice = makeFmt(4), fmtInt = makeFmt(0), fmtSigned = makeFmt(2, { signDisplay: 'exceptZero' });
+    const money = (v) => fmtMoney.format(Number(v) || 0) + ' ج.م';
+    const signedMoney = (v) => fmtSigned.format(Number(v) || 0) + ' ج.م';
+    const price = (v) => fmtPrice.format(Number(v) || 0);
+    const number = (v) => Number(v || 0);
+    const hasValue = (v) => v !== '' && v != null;
+
+    const todayISO = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const dateFmt = new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+    const dateLabel = (iso) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+      return m ? dateFmt.format(new Date(+m[1], +m[2] - 1, +m[3])) : '—';
+    };
+
+    const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+    let trades = loadTrades();
+    let filterValue = 'all';
+
+    function loadTrades() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        if (!Array.isArray(saved)) return [];
+        return saved.filter((t) => t && typeof t === 'object').map((t) => ({
+          ...t,
+          id: t.id || newId(),
+          symbol: String(t.symbol ?? ''),
+          entryDate: String(t.entryDate ?? ''),
+          status: t.status || 'open'
+        }));
+      } catch { return []; }
+    }
+    function persist() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(trades)); return true; }
+      catch { toast('تعذّر الحفظ في المتصفح. تأكد أن التخزين غير ممتلئ أو غير محظور.'); return false; }
+    }
+    function pnl(t) {
+      if (t.status !== 'closed' || !hasValue(t.sellPrice)) return null;
+      const result = (number(t.sellPrice) - number(t.buyPrice)) * number(t.quantity) - number(t.fees);
+      return Math.round(result * 100) / 100;
+    }
+    function statusMeta(status) {
+      return ({
+        open: { label: 'مفتوحة', cls: 'pill--open' },
+        closed: { label: 'مغلقة', cls: 'pill--closed' },
+        cancelled: { label: 'ملغاة', cls: 'pill--cancelled' }
+      })[status] || { label: 'غير محددة', cls: 'pill--cancelled' };
+    }
+
+    function view(t) {
+      const r = pnl(t);
+      let result;
+      if (r !== null) result = { text: signedMoney(r), cls: r > 0 ? 'gain' : r < 0 ? 'loss' : '' };
+      else if (t.status === 'cancelled') result = { text: '—', cls: 'muted' };
+      else result = { text: 'غير محقق', cls: 'muted' };
+      return {
+        id: escapeHtml(t.id), sym: escapeHtml(t.symbol), reason: escapeHtml(t.reason || ''),
+        meta: statusMeta(t.status), result, date: dateLabel(t.entryDate),
+        buy: price(t.buyPrice), qty: fmtInt.format(number(t.quantity)),
+        stop: number(t.stopLoss) > 0 ? price(t.stopLoss) : '—',
+        target: number(t.targetPrice) > 0 ? price(t.targetPrice) : '—',
+        sell: hasValue(t.sellPrice) ? price(t.sellPrice) : '—',
+        fees: fmtMoney.format(number(t.fees))
+      };
+    }
+
+    function rowHtml(t) {
+      const v = view(t);
+      return `<tr>
+        <td>${v.date}</td>
+        <td><div class="sym">${v.sym}</div>${v.reason ? `<div class="note" title="${v.reason}">${v.reason}</div>` : ''}</td>
+        <td><span class="pill ${v.meta.cls}">${v.meta.label}</span></td>
+        <td class="num">${v.buy}</td><td class="num">${v.qty}</td><td class="num">${v.stop}</td><td class="num">${v.target}</td><td class="num">${v.sell}</td><td class="num">${v.fees}</td>
+        <td class="num result ${v.result.cls}">${v.result.text}</td>
+        <td><div class="row-actions">
+          <button class="btn btn-secondary btn-sm" type="button" data-edit="${v.id}" aria-label="تعديل صفقة ${v.sym}">تعديل</button>
+          <button class="btn btn-danger btn-sm" type="button" data-delete="${v.id}" aria-label="حذف صفقة ${v.sym}">حذف</button>
+        </div></td>
+      </tr>`;
+    }
+
+    function cardHtml(t) {
+      const v = view(t);
+      return `<article class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-meta"><span class="sym">${v.sym}</span><span class="pill ${v.meta.cls}">${v.meta.label}</span></div>
+            <p class="card-date">${v.date}</p>
+          </div>
+          <div class="card-result ${v.result.cls}">${v.result.text}</div>
+        </div>
+        <dl class="stats">
+          <div><dt>سعر الشراء</dt><dd>${v.buy}</dd></div>
+          <div><dt>الكمية</dt><dd>${v.qty}</dd></div>
+          <div><dt>سعر البيع</dt><dd>${v.sell}</dd></div>
+          <div><dt>وقف الخسارة</dt><dd>${v.stop}</dd></div>
+          <div><dt>الهدف</dt><dd>${v.target}</dd></div>
+          <div><dt>الرسوم</dt><dd>${v.fees}</dd></div>
+        </dl>
+        ${v.reason ? `<p class="card-note">${v.reason}</p>` : ''}
+        <div class="card-actions">
+          <button class="btn btn-secondary" type="button" data-edit="${v.id}" aria-label="تعديل صفقة ${v.sym}">تعديل</button>
+          <button class="btn btn-danger" type="button" data-delete="${v.id}" aria-label="حذف صفقة ${v.sym}">حذف</button>
+        </div>
+      </article>`;
+    }
+
+    function render() {
+      const query = $('searchInput').value.trim().toLowerCase();
+      const filtered = trades
+        .filter((t) => (!query || t.symbol.toLowerCase().includes(query)) && (filterValue === 'all' || t.status === filterValue))
+        .sort((a, b) => b.entryDate.localeCompare(a.entryDate) || String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+
+      $('tradesBody').innerHTML = filtered.map(rowHtml).join('');
+      $('cards').innerHTML = filtered.map(cardHtml).join('');
+
+      const isEmpty = filtered.length === 0;
+      const noTrades = trades.length === 0;
+      $('log').classList.toggle('is-empty', isEmpty);
+      $('emptyTitle').textContent = noTrades ? 'لسه مفيش صفقات' : 'مفيش نتائج مطابقة';
+      $('emptyText').textContent = noTrades ? 'ابدأ بإضافة أول صفقة، وسجل سبب الدخول ومستويات الخروج.' : 'جرّب تغيير كلمة البحث أو الفلتر.';
+      $('emptyAddBtn').hidden = !noTrades;
+      $('clearFilterBtn').hidden = noTrades;
+
+      $('shownCount').textContent = `عرض ${fmtInt.format(filtered.length)} من ${fmtInt.format(trades.length)} صفقة`;
+      document.querySelectorAll('.chip').forEach((chip) => chip.setAttribute('aria-pressed', String(chip.dataset.filter === filterValue)));
+      document.querySelectorAll('[data-count]').forEach((el) => {
+        const key = el.dataset.count;
+        el.textContent = fmtInt.format(key === 'all' ? trades.length : trades.filter((t) => t.status === key).length);
+      });
+      updateMetrics();
+    }
+
+    function updateMetrics() {
+      const closed = trades.filter((t) => t.status === 'closed' && pnl(t) !== null);
+      const results = closed.map(pnl);
+      const net = Math.round(results.reduce((sum, value) => sum + value, 0) * 100) / 100;
+      const wins = results.filter((value) => value > 0).length;
+      const openCapital = trades.filter((t) => t.status === 'open').reduce((sum, t) => sum + number(t.buyPrice) * number(t.quantity), 0);
+      $('totalTrades').textContent = fmtInt.format(trades.length);
+      $('netProfit').textContent = signedMoney(net);
+      $('netProfit').className = `value ${net > 0 ? 'gain' : net < 0 ? 'loss' : ''}`;
+      $('winRate').textContent = closed.length ? `${fmtInt.format(Math.round((wins / closed.length) * 100))}٪` : '—';
+      $('openCapital').textContent = money(openCapital);
+    }
+
+    /* Form */
+    const dialog = $('tradeDialog');
+    const getStatus = () => document.querySelector('input[name="status"]:checked').value;
+    function setStatus(value) {
+      const radio = document.querySelector(`input[name="status"][value="${value}"]`) || document.querySelector('input[name="status"][value="open"]');
+      radio.checked = true;
+      syncStatus();
+    }
+    function syncStatus() {
+      const closed = getStatus() === 'closed';
+      $('sellPrice').required = closed;
+      $('sellHint').textContent = closed ? 'مطلوب للصفقة المغلقة' : 'اتركه فارغًا لو الصفقة مفتوحة';
+      $('sellHint').classList.toggle('need', closed);
+    }
+    function showForm(trade = null) {
+      $('formTitle').textContent = trade ? 'تعديل الصفقة' : 'إضافة صفقة جديدة';
+      $('tradeId').value = trade?.id || '';
+      $('entryDate').value = trade?.entryDate || todayISO();
+      $('symbol').value = trade?.symbol || '';
+      $('buyPrice').value = trade?.buyPrice ?? '';
+      $('quantity').value = trade?.quantity ?? '';
+      $('stopLoss').value = trade?.stopLoss ?? '';
+      $('targetPrice').value = trade?.targetPrice ?? '';
+      $('sellPrice').value = trade?.sellPrice ?? '';
+      $('fees').value = trade?.fees ?? 0;
+      $('reason').value = trade?.reason || '';
+      setStatus(trade?.status || 'open');
+      updatePreview();
+      document.body.classList.add('modal-open');
+      dialog.showModal();
+      $('tradeForm').querySelector('.sheet-body').scrollTop = 0;
+      // Only auto-focus on devices with a real pointer; on phones it would pop the keyboard and hide the form.
+      if (!trade && matchMedia('(pointer: fine)').matches) $('symbol').focus();
+      else document.activeElement?.blur();
+    }
+    const closeForm = () => { if (dialog.open) dialog.close(); };
+    dialog.addEventListener('close', () => {
+      document.body.classList.remove('modal-open');
+      $('tradeForm').reset();
+      $('tradeId').value = '';
+    });
+
+    function updatePreview() {
+      const sell = $('sellPrice').value;
+      const buy = number($('buyPrice').value);
+      const qty = number($('quantity').value);
+      const fees = number($('fees').value);
+      const el = $('previewPnl');
+      if (getStatus() !== 'closed' || sell === '' || buy <= 0 || qty <= 0) {
+        el.textContent = 'تظهر عند إغلاق الصفقة';
+        el.className = 'is-muted';
+        return;
+      }
+      const result = Math.round(((number(sell) - buy) * qty - fees) * 100) / 100;
+      el.textContent = signedMoney(result);
+      el.className = result > 0 ? 'gain' : result < 0 ? 'loss' : '';
+    }
+
+    function saveTrade(event) {
+      event.preventDefault();
+      const id = $('tradeId').value || newId();
+      const trade = {
+        id,
+        entryDate: $('entryDate').value,
+        symbol: $('symbol').value.trim().toUpperCase(),
+        status: getStatus(),
+        buyPrice: number($('buyPrice').value),
+        quantity: number($('quantity').value),
+        stopLoss: $('stopLoss').value ? number($('stopLoss').value) : '',
+        targetPrice: $('targetPrice').value ? number($('targetPrice').value) : '',
+        sellPrice: $('sellPrice').value === '' ? '' : number($('sellPrice').value),
+        fees: number($('fees').value),
+        reason: $('reason').value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      if (trade.buyPrice <= 0 || trade.quantity <= 0) return;
+      const previous = trades.slice();
+      const index = trades.findIndex((t) => t.id === id);
+      if (index >= 0) trades[index] = trade; else trades.push(trade);
+      if (!persist()) { trades = previous; return; }
+      render();
+      closeForm();
+      toast(`تم حفظ صفقة ${trade.symbol}`);
+    }
+
+    /* Delete with undo */
+    function deleteTrade(id) {
+      const index = trades.findIndex((t) => t.id === id);
+      if (index < 0) return;
+      const [removed] = trades.splice(index, 1);
+      persist(); render();
+      toast(`تم حذف صفقة ${removed.symbol}`, () => {
+        trades.splice(Math.min(index, trades.length), 0, removed);
+        persist(); render();
+      });
+    }
+
+    /* Toast */
+    let toastTimer;
+    function toast(message, undo) {
+      $('toastMsg').textContent = message;
+      const undoBtn = $('toastUndo');
+      undoBtn.hidden = !undo;
+      undoBtn.onclick = undo ? () => { undo(); hideToast(); } : null;
+      $('toast').hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, undo ? 7000 : 3000);
+    }
+    function hideToast() { $('toast').hidden = true; }
+
+    /* CSV */
+    function exportCsv() {
+      if (!trades.length) { toast('لا توجد صفقات لتصديرها.'); return; }
+      const text = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return `"${s.replace(/"/g, '""')}"`; };
+      const num = (v) => `"${String(v ?? '')}"`;
+      const headers = ['تاريخ الدخول', 'السهم', 'الحالة', 'سعر الشراء', 'الكمية', 'وقف الخسارة', 'الهدف', 'سعر البيع', 'الرسوم', 'صافي الربح والخسارة', 'سبب الدخول / ملاحظات'];
+      const rows = trades.map((t) => [
+        num(t.entryDate), text(t.symbol), text(statusMeta(t.status).label), num(t.buyPrice), num(t.quantity), num(t.stopLoss),
+        num(t.targetPrice), num(t.sellPrice), num(t.fees), num(pnl(t) ?? ''), text(t.reason)
+      ]);
+      const csv = '\uFEFF' + [headers.map(text), ...rows].map((row) => row.join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = `trade-journal-${todayISO()}.csv`;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    /* Events */
+    ['addTopBtn', 'fab', 'emptyAddBtn'].forEach((id) => $(id).addEventListener('click', () => showForm()));
+    $('cancelBtn').addEventListener('click', closeForm);
+    $('cancelFormBtn').addEventListener('click', closeForm);
+    $('tradeForm').addEventListener('submit', saveTrade);
+    $('tradeForm').addEventListener('input', updatePreview);
+    $('tradeForm').addEventListener('change', (e) => { if (e.target.name === 'status') syncStatus(); updatePreview(); });
+    $('searchInput').addEventListener('input', render);
+    $('chips').addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-filter]');
+      if (!chip) return;
+      filterValue = chip.dataset.filter;
+      render();
+    });
+    $('clearFilterBtn').addEventListener('click', () => { $('searchInput').value = ''; filterValue = 'all'; render(); });
+    $('exportBtn').addEventListener('click', exportCsv);
+
+    function onListClick(event) {
+      const edit = event.target.closest('[data-edit]');
+      const del = event.target.closest('[data-delete]');
+      if (edit) { const trade = trades.find((t) => t.id === edit.dataset.edit); if (trade) showForm(trade); }
+      if (del) deleteTrade(del.dataset.delete);
+    }
+    $('tradesBody').addEventListener('click', onListClick);
+    $('cards').addEventListener('click', onListClick);
+
+    render();
+  </script>
+</body>
+</html>
