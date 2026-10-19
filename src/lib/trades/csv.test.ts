@@ -26,7 +26,12 @@ describe("buildCsv", () => {
 
   test("writes one row per trade with the computed result", () => {
     const [, row] = buildCsv([trade]).split("\r\n");
-    expect(row).toBe('"2026-10-01","COMI","مغلقة","10","100","9","","12","5","195","said ""go"""');
+    expect(row).toBe('"2026-10-01","COMI","مغلقة","10","100","9","","12","5","195","105","","1.86","said ""go"""');
+  });
+
+  test("includes the risk columns in the header", () => {
+    const header = buildCsv([trade]).split("\r\n")[0];
+    expect(header).toContain('"صافي الربح والخسارة","المخاطرة","العائد/المخاطرة","مضاعف R","سبب الدخول / ملاحظات"');
   });
 
   test("neutralises spreadsheet formula injection in text cells", () => {
