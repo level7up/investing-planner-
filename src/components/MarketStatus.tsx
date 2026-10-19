@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { QuoteSnapshot } from "@/lib/quotes/types";
-
-const timeFormatter = new Intl.DateTimeFormat("ar-EG", { timeStyle: "short", timeZone: "Africa/Cairo" });
+import { cairoTimeFormatter } from "@/lib/trades/format";
 
 interface MarketStatusProps {
   market: QuoteSnapshot;
@@ -13,7 +12,7 @@ interface MarketStatusProps {
 function statusText(market: QuoteSnapshot): string {
   if (!market.isAvailable) return "تعذّر جلب أسعار البورصة الآن — القيم المعروضة بسعر الشراء.";
   if (!market.fetchedAt) return "لا توجد صفقات مفتوحة لجلب أسعارها.";
-  return `أسعار البورصة متأخرة ١٥ دقيقة · آخر تحديث ${timeFormatter.format(new Date(market.fetchedAt))}`;
+  return `أسعار البورصة متأخرة 15 دقيقة · آخر تحديث ${cairoTimeFormatter.format(new Date(market.fetchedAt))}`;
 }
 
 export function MarketStatus({ market }: MarketStatusProps) {

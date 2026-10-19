@@ -25,13 +25,13 @@ const COLUMNS = [
   "الكمية",
   "القيمة الشرائية",
   "السعر الحالي",
+  "صافي الربح/الخسارة",
   "وقف الخسارة",
   "الهدف",
   "سعر البيع",
   "الرسوم",
   "المخاطرة",
   "العائد/المخاطرة",
-  "صافي الربح/الخسارة",
   "إجراءات",
 ];
 
@@ -86,13 +86,13 @@ function TradeRow({ trade, view, onEdit, onDelete }: TradeItemProps) {
       <td className="num">{view.quantity}</td>
       <td className="num">{view.purchaseValue}</td>
       <td className="num"><CurrentPrice view={view} /></td>
+      <td className={`num result ${view.result.className}`}><Result view={view} /></td>
       <td className="num">{view.stop}</td>
       <td className="num">{view.target}</td>
       <td className="num">{view.sell}</td>
       <td className="num">{view.fees}</td>
       <td className="num">{view.risk}</td>
       <td className="num">{view.rewardToRisk}</td>
-      <td className={`num result ${view.result.className}`}><Result view={view} /></td>
       <td><div className="row-actions"><Actions trade={trade} onEdit={onEdit} onDelete={onDelete} isSmall /></div></td>
     </tr>
   );

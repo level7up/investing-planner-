@@ -241,3 +241,53 @@ fieldset.group legend { padding: 0; font-size: .88rem; font-weight: 600; color: 
 .market-status--down { border-color: #fde68a; background: #fffbeb; color: #92400e; }
 .pill--alert-stop { background: #fee2e2; color: var(--loss); margin-inline-start: 6px; }
 .pill--alert-target { background: #d1fae5; color: var(--brand-dark); margin-inline-start: 6px; }
+
+:root {
+  --chart-surface: #ffffff;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-muted: #898781;
+  --chart-ink-secondary: #52514e;
+}
+@media (min-width: 900px) { .tabs { max-width: 520px; } }
+
+.charts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 1000px) { .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.chart-card { margin: 0; min-width: 0; background: var(--chart-surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+.chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.chart-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.chart-head p { margin: 2px 0 0; font-size: .78rem; color: var(--muted); }
+.chart-empty { margin: 0; padding: 32px 12px; text-align: center; color: var(--muted); font-size: .88rem; }
+.chart-plot { position: relative; width: 100%; }
+.chart-plot svg { display: block; overflow: visible; }
+.chart-plot svg:focus-visible, .chart-plot rect:focus-visible { outline: none; }
+.chart-plot rect[tabindex]:focus-visible { stroke: var(--chart-axis); stroke-width: 1; }
+.chart-grid { stroke: var(--chart-grid); stroke-width: 1; }
+.chart-baseline { stroke: var(--chart-axis); stroke-width: 1; }
+.chart-crosshair { stroke: var(--chart-axis); stroke-width: 1; pointer-events: none; }
+.chart-axis-label { fill: var(--chart-muted); font-size: 11px; font-variant-numeric: tabular-nums; unicode-bidi: plaintext; }
+.chart-category-label { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.chart-value-label { fill: var(--chart-ink-secondary); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.chart-tooltip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 18px rgba(15, 23, 42, .12); font-size: .8rem; }
+.chart-tooltip-title { margin: 0 0 4px; color: var(--muted); font-size: .75rem; }
+.chart-tooltip-row { display: flex; align-items: center; gap: 6px; margin: 0; }
+.chart-tooltip-row strong { color: var(--ink); white-space: nowrap; }
+.chart-tooltip-row span:not(.chart-line-key) { white-space: nowrap; }
+.chart-tooltip-row span:last-child { color: var(--muted); }
+.chart-line-key { display: inline-block; width: 12px; height: 2px; border-radius: 1px; }
+.chart-table-wrap { overflow-x: auto; }
+.chart-table { width: 100%; font-size: .85rem; }
+.chart-table td { font-variant-numeric: tabular-nums; }
+
+.allocation-bar { display: flex; gap: 2px; height: 16px; background: var(--chart-surface); }
+.allocation-segment { min-width: 2px; }
+.allocation-segment:first-child { border-start-start-radius: 4px; border-end-start-radius: 4px; }
+.allocation-segment:last-child { border-start-end-radius: 4px; border-end-end-radius: 4px; }
+.allocation-legend { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.allocation-legend li { display: grid; grid-template-columns: 12px 1fr auto 56px; align-items: center; gap: 8px; font-size: .88rem; }
+.allocation-swatch { width: 12px; height: 12px; border-radius: 3px; }
+.allocation-share { color: var(--muted); text-align: end; font-variant-numeric: tabular-nums; }

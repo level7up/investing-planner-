@@ -5,7 +5,7 @@ import { deleteGold } from "@/app/actions/gold";
 import { goldPricePerGram, goldSummary } from "@/lib/gold/calc";
 import { GOLD_KARATS, type GoldHolding, type GoldPrices } from "@/lib/gold/types";
 import type { PortfolioPageProps } from "@/lib/portfolio/types";
-import { formatAmount, formatMoney, formatSignedMoney, toneOf } from "@/lib/trades/format";
+import { cairoDateTimeFormatter, formatAmount, formatMoney, formatSignedMoney, toneOf } from "@/lib/trades/format";
 import { AppHeader } from "../AppHeader";
 import { Toast } from "../Toast";
 import { useToast } from "../useToast";
@@ -15,15 +15,13 @@ import { GoldPricesDialog } from "./GoldPricesDialog";
 
 type Dialog = { type: "none" } | { type: "prices" } | { type: "holding"; holding: GoldHolding | null };
 
-const dateTimeFormatter = new Intl.DateTimeFormat("ar-EG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Cairo" });
-
 function PricesCard({ prices, onEdit }: { prices: GoldPrices; onEdit: () => void }) {
   return (
     <section className="prices-card" aria-label="أسعار الذهب">
       <div className="prices-head">
         <div>
           <h2>سعر الجرام اليوم</h2>
-          <p>{prices.updatedAt ? `آخر تحديث: ${dateTimeFormatter.format(new Date(prices.updatedAt))}` : "لم تُسجّل أسعار بعد"}</p>
+          <p>{prices.updatedAt ? `آخر تحديث: ${cairoDateTimeFormatter.format(new Date(prices.updatedAt))}` : "لم تُسجّل أسعار بعد"}</p>
         </div>
         <button className="btn btn-secondary btn-sm" type="button" onClick={onEdit}>تحديث الأسعار</button>
       </div>

@@ -1,5 +1,5 @@
 import type { TradeMetrics } from "@/lib/trades/calc";
-import { formatInt, formatMoney, formatSignedMoney, toneOf } from "@/lib/trades/format";
+import { formatInt, formatMoney, formatPercent, formatSignedMoney, toneOf } from "@/lib/trades/format";
 import type { OpenUnrealised } from "@/lib/quotes/positions";
 import type { OpenRisk } from "@/lib/trades/risk";
 
@@ -38,7 +38,7 @@ function unrealisedHint(unrealised: OpenUnrealised): string {
 }
 
 export function Metrics({ metrics, risk, unrealised }: MetricsProps) {
-  const winRate = metrics.winRate === null ? "—" : `${formatInt(metrics.winRate)}٪`;
+  const winRate = metrics.winRate === null ? "—" : formatPercent(metrics.winRate);
   return (
     <section className="metrics" aria-label="ملخص الصفقات">
       <Metric label="صافي النتائج المحققة" value={formatSignedMoney(metrics.net)} hint="للصفقات المغلقة فقط" tone={toneOf(metrics.net)} isWide />

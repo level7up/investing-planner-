@@ -57,7 +57,7 @@ export function WalletBoard({ data, email }: PortfolioPageProps) {
 
         <section className="metrics" aria-label="ملخص المحفظة">
           <article className="metric metric--wide"><p className="label">الرصيد النقدي</p><p className={`value ${summary.cash < 0 ? "loss" : ""}`}>{formatMoney(summary.cash)}</p><p className="hint">متاح للشراء</p></article>
-          <article className="metric"><p className="label">مراكز مفتوحة</p><p className="value">{formatMoney(summary.positions)}</p><p className="hint">بسعر السوق (متأخر ١٥ دقيقة) أو الشراء إن لم يتوفر</p></article>
+          <article className="metric"><p className="label">مراكز مفتوحة</p><p className="value">{formatMoney(summary.positions)}</p><p className="hint">بسعر السوق (متأخر 15 دقيقة) أو الشراء إن لم يتوفر</p></article>
           <article className="metric"><p className="label">الذهب</p><p className="value">{formatMoney(summary.gold)}</p><p className="hint">بسعر الجرام المسجّل</p></article>
           <article className="metric metric--wide"><p className="label">إجمالي المحفظة</p><p className="value">{formatMoney(summary.total)}</p><p className="hint">يُستخدم كرأس مال لحساب المخاطرة</p></article>
         </section>

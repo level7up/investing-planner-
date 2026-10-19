@@ -19,7 +19,7 @@ const riskSettingsSchema = z.object({
       z
         .number({ error: "نسبة المخاطرة غير صالحة" })
         .positive("نسبة المخاطرة لازم تكون أكبر من صفر")
-        .max(MAX_RISK_PERCENT, "نسبة المخاطرة لا تتعدى 100٪"),
+        .max(MAX_RISK_PERCENT, "نسبة المخاطرة لا تتعدى 100%"),
     ),
 });
 

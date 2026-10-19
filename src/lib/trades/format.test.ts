@@ -1,6 +1,22 @@
 import { describe, expect, test } from "vitest";
 import { emptyFormValues, tradeToFormValues } from "./form";
-import { formatDate, formatOptionalPrice, formatPercent, formatRatio, formatRMultiple, formatSignedMoney, todayISO, toneOf } from "./format";
+import {
+  formatAmount,
+  formatCompact,
+  formatDate,
+  formatInt,
+  formatMoney,
+  formatOptionalPrice,
+  formatPercent,
+  formatPrice,
+  formatRatio,
+  formatSignedPercent,
+  formatRMultiple,
+  formatSignedMoney,
+  isolateLtr,
+  todayISO,
+  toneOf,
+} from "./format";
 import { parseTradeInput } from "./schema";
 import type { Trade } from "./types";
 
@@ -18,8 +34,38 @@ describe("format helpers", () => {
     expect(formatOptionalPrice(null)).toBe("—");
   });
 
-  test("formatSignedMoney includes the currency", () => {
-    expect(formatSignedMoney(5)).toContain("ج.م");
+  test("money uses western digits, two decimals and the currency after", () => {
+    expect(formatMoney(152300)).toBe(`${isolateLtr("152,300.00")} ج.م`);
+    expect(formatAmount(14.3)).toBe(isolateLtr("14.30"));
+  });
+
+  test("signed money keeps the sign attached to the number", () => {
+    expect(formatSignedMoney(1234.5)).toBe(`${isolateLtr("+1,234.50")} ج.م`);
+    expect(formatSignedMoney(-52.25)).toBe(`${isolateLtr("-52.25")} ج.م`);
+    expect(formatSignedMoney(0)).toBe(`${isolateLtr("0.00")} ج.م`);
+  });
+
+  test("prices show two to four decimals", () => {
+    expect(formatPrice(1.43)).toBe(isolateLtr("1.43"));
+    expect(formatPrice(1.4375)).toBe(isolateLtr("1.4375"));
+    expect(formatPrice(124)).toBe(isolateLtr("124.00"));
+  });
+
+  test("integers, percents, ratios and R multiples use western digits", () => {
+    expect(formatInt(12500)).toBe(isolateLtr("12,500"));
+    expect(formatPercent(47.619)).toBe(isolateLtr("47.62%"));
+    expect(formatSignedPercent(2.247)).toBe(isolateLtr("+2.25%"));
+    expect(formatRatio(2.6)).toBe(isolateLtr("2.6×"));
+    expect(formatRMultiple(-0.5)).toBe(isolateLtr("-0.5R"));
+  });
+
+  test("compact axis labels", () => {
+    expect(formatCompact(1500)).toBe(isolateLtr("1.5K"));
+    expect(formatCompact(-500)).toBe(isolateLtr("-500"));
+  });
+
+  test("dates use Arabic months with western digits", () => {
+    expect(formatDate("2026-10-19")).toMatch(/^19 .+ 2026$/);
   });
 
   test("toneOf classifies results", () => {
@@ -56,10 +102,3 @@ describe("form values", () => {
   });
 });
 
-describe("risk formatters", () => {
-  test("append their unit", () => {
-    expect(formatPercent(1.5)).toContain("٪");
-    expect(formatRatio(2)).toContain("×");
-    expect(formatRMultiple(-0.5)).toMatch(/R$/);
-  });
-});

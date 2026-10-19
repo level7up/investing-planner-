@@ -9,6 +9,7 @@ const TABS = [
   { href: "/", label: "الصفقات" },
   { href: "/gold", label: "الذهب" },
   { href: "/wallet", label: "المحفظة" },
+  { href: "/analytics", label: "التحليل" },
 ] as const;
 
 interface AppHeaderProps {

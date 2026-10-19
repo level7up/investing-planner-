@@ -21,12 +21,12 @@ export function RiskSettingsDialog({ settings, capital, onClose, onSaved }: Risk
   return (
     <Modal title="إعدادات المخاطرة" error={error} isPending={isPending} submitLabel="حفظ الإعدادات" onClose={onClose} onSubmit={submit} isNarrow>
       <NumberField
-        label="أقصى مخاطرة في الصفقة الواحدة (٪)"
+        label="أقصى مخاطرة في الصفقة الواحدة (%)"
         isWide
         isRequired
         value={values.riskPercent}
         onChange={(v) => update("riskPercent", v)}
-        hint={<span className="hint">الشائع بين ١٪ و٢٪.</span>}
+        hint={<span className="hint">الشائع بين 1% و2%.</span>}
       />
       <p className="f span2 settings-capital">
         رأس المال المستخدم في الحساب = إجمالي المحفظة (نقدية + مراكز مفتوحة + ذهب):{" "}

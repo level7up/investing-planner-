@@ -6,9 +6,9 @@ import {
   formatDate,
   formatInt,
   formatOptionalPrice,
-  formatPercent,
   formatPrice,
   formatRatio,
+  formatSignedPercent,
   formatRMultiple,
   formatSignedMoney,
   toneOf,
@@ -40,8 +40,6 @@ export const ALERT_LABELS: Record<Exclude<PositionAlert, null>, string> = {
   target: "وصل الهدف",
 };
 
-const signedPercent = (value: number): string => `${value > 0 ? "+" : ""}${formatPercent(value)}`;
-
 function resultOf(trade: Trade, live: ReturnType<typeof livePosition>): TradeView["result"] {
   const value = pnl(trade);
   if (value !== null) {
@@ -69,7 +67,7 @@ export function toTradeView(trade: Trade, quotes: QuoteMap): TradeView {
     purchaseValue: formatAmount(purchaseValue(trade)),
     current: live && {
       price: formatPrice(live.price),
-      change: live.changePercent === null ? null : signedPercent(live.changePercent),
+      change: live.changePercent === null ? null : formatSignedPercent(live.changePercent),
       changeClass: live.changePercent === null ? "" : toneOf(live.changePercent),
     },
     alert: live?.alert ?? null,
