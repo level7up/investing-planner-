@@ -1,9 +1,14 @@
-import type { TradeFilter, TradeStatus } from "./types";
+import type { AssetType, TradeFilter, TradeStatus } from "./types";
 
 export const STATUS_LABELS: Record<TradeStatus, string> = {
   open: "مفتوحة",
   closed: "مغلقة",
   cancelled: "ملغاة",
+};
+
+export const ASSET_LABELS: Record<AssetType, string> = {
+  stock: "سهم",
+  gold_fund: "صندوق ذهب",
 };
 
 export const FILTER_OPTIONS: readonly { value: TradeFilter; label: string }[] = [

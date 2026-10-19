@@ -3,7 +3,9 @@ import { parseTradeInput, parseTradeId } from "./schema";
 import type { TradeFormValues } from "./types";
 
 const validInput: TradeFormValues = {
+  assetType: "stock",
   entryDate: "2026-10-01",
+  exitDate: "2026-10-03",
   symbol: " comi ",
   status: "open",
   buyPrice: "10.5",
@@ -21,7 +23,9 @@ describe("parseTradeInput", () => {
     expect(result).toEqual({
       ok: true,
       data: {
+        assetType: "stock",
         entryDate: "2026-10-01",
+        exitDate: null,
         symbol: "COMI",
         status: "open",
         buyPrice: 10.5,
@@ -40,9 +44,19 @@ describe("parseTradeInput", () => {
     expect(result.ok).toBe(false);
   });
 
-  test("accepts a closed trade with a sell price", () => {
+  test("accepts a closed trade with a sell price and keeps its exit date", () => {
     const result = parseTradeInput({ ...validInput, status: "closed", sellPrice: "11" });
-    expect(result.ok && result.data.sellPrice).toBe(11);
+    expect(result.ok && result.data).toMatchObject({ sellPrice: 11, exitDate: "2026-10-03" });
+  });
+
+  test("requires an exit date on or after entry for closed trades", () => {
+    expect(parseTradeInput({ ...validInput, status: "closed", sellPrice: "11", exitDate: "" }).ok).toBe(false);
+    expect(parseTradeInput({ ...validInput, status: "closed", sellPrice: "11", exitDate: "2026-09-30" }).ok).toBe(false);
+  });
+
+  test("accepts gold fund trades", () => {
+    const result = parseTradeInput({ ...validInput, assetType: "gold_fund" });
+    expect(result.ok && result.data.assetType).toBe("gold_fund");
   });
 
   test.each([
@@ -53,6 +67,7 @@ describe("parseTradeInput", () => {
     ["negative fees", { fees: "-1" }],
     ["invalid date", { entryDate: "2026-13-45" }],
     ["unknown status", { status: "pending" }],
+    ["unknown asset type", { assetType: "crypto" }],
     ["non numeric price", { stopLoss: "abc" }],
   ])("rejects %s", (_label, override) => {
     const result = parseTradeInput({ ...validInput, ...override });

@@ -1,11 +1,13 @@
 import { pnl } from "./calc";
 import { riskProfile, rMultiple } from "./risk";
-import { STATUS_LABELS } from "./status";
+import { ASSET_LABELS, STATUS_LABELS } from "./status";
 import type { Trade } from "./types";
 
 const HEADERS = [
   "تاريخ الدخول",
+  "تاريخ الخروج",
   "السهم",
+  "نوع الأصل",
   "الحالة",
   "سعر الشراء",
   "الكمية",
@@ -33,7 +35,9 @@ const tradeRow = (trade: Trade): string[] => {
   const risk = riskProfile(trade);
   return [
     numberCell(trade.entryDate),
+    numberCell(trade.exitDate),
     textCell(trade.symbol),
+    textCell(ASSET_LABELS[trade.assetType]),
     textCell(STATUS_LABELS[trade.status]),
     numberCell(trade.buyPrice),
     numberCell(trade.quantity),

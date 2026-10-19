@@ -1,11 +1,13 @@
 import type { TradeInput } from "./schema";
-import { TRADE_STATUSES, type Trade, type TradeStatus } from "./types";
+import { ASSET_TYPES, TRADE_STATUSES, type AssetType, type Trade, type TradeStatus } from "./types";
 
 type Numeric = number | string;
 
 export type TradeRow = {
   id: string;
+  asset_type: string;
   entry_date: string;
+  exit_date: string | null;
   symbol: string;
   status: string;
   buy_price: Numeric;
@@ -18,25 +20,28 @@ export type TradeRow = {
   updated_at: string;
 };
 
-export type TradeWriteRow = Omit<TradeRow, "id" | "updated_at" | "reason" | "status"> & {
+export type TradeWriteRow = Omit<TradeRow, "id" | "updated_at" | "reason" | "status" | "asset_type"> & {
+  asset_type: AssetType;
   status: TradeStatus;
   reason: string;
 };
 
 export const TRADE_COLUMNS =
-  "id, entry_date, symbol, status, buy_price, quantity, stop_loss, target_price, sell_price, fees, reason, updated_at";
+  "id, asset_type, entry_date, exit_date, symbol, status, buy_price, quantity, stop_loss, target_price, sell_price, fees, reason, updated_at";
 
 const toNullableNumber = (value: Numeric | null): number | null => (value === null ? null : Number(value));
 
-const toStatus = (value: string): TradeStatus =>
-  (TRADE_STATUSES as readonly string[]).includes(value) ? (value as TradeStatus) : "open";
+const oneOf = <T extends string>(options: readonly T[], value: string, fallback: T): T =>
+  (options as readonly string[]).includes(value) ? (value as T) : fallback;
 
 export function fromRow(row: TradeRow): Trade {
   return {
     id: row.id,
+    assetType: oneOf(ASSET_TYPES, row.asset_type, "stock"),
     entryDate: row.entry_date,
+    exitDate: row.exit_date,
     symbol: row.symbol,
-    status: toStatus(row.status),
+    status: oneOf(TRADE_STATUSES, row.status, "open"),
     buyPrice: Number(row.buy_price),
     quantity: Number(row.quantity),
     stopLoss: toNullableNumber(row.stop_loss),
@@ -50,7 +55,9 @@ export function fromRow(row: TradeRow): Trade {
 
 export function toRow(input: TradeInput): TradeWriteRow {
   return {
+    asset_type: input.assetType,
     entry_date: input.entryDate,
+    exit_date: input.exitDate,
     symbol: input.symbol,
     status: input.status,
     buy_price: input.buyPrice,

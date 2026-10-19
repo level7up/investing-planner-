@@ -5,6 +5,8 @@ import type { Trade } from "./types";
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   id: "t1",
   entryDate: "2026-10-01",
+  assetType: "stock",
+  exitDate: null,
   symbol: "COMI",
   status: "closed",
   buyPrice: 10,

@@ -1,39 +1,29 @@
 import { z } from "zod";
-import { TRADE_STATUSES, type Trade } from "./types";
+import {
+  boundedText,
+  nonNegativeNumber,
+  optionalDate,
+  optionalNumber,
+  parseUuid,
+  requiredDate,
+  requiredNumber,
+  toParsed,
+  type Parsed,
+} from "@/lib/validation";
+import { ASSET_TYPES, TRADE_STATUSES, type Trade } from "./types";
 
-const MAX_AMOUNT = 1_000_000_000_000;
 const MAX_SYMBOL_LENGTH = 30;
 const MAX_REASON_LENGTH = 2000;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export type TradeInput = Omit<Trade, "id" | "updatedAt">;
 
-export type ParseResult = { ok: true; data: TradeInput } | { ok: false; error: string };
-
-const isRealDate = (value: string): boolean => {
-  if (!ISO_DATE.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
-};
-
-const requiredNumber = (label: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, `${label} مطلوب`)
-    .transform(Number)
-    .pipe(z.number({ error: `${label} غير صالح` }).positive(`${label} لازم يكون أكبر من صفر`).max(MAX_AMOUNT));
-
-const optionalNumber = (label: string) =>
-  z
-    .string()
-    .trim()
-    .transform((value) => (value === "" ? null : Number(value)))
-    .pipe(z.number({ error: `${label} غير صالح` }).positive(`${label} لازم يكون أكبر من صفر`).max(MAX_AMOUNT).nullable());
+export type ParseResult = Parsed<TradeInput>;
 
 const tradeInputSchema = z
   .object({
-    entryDate: z.string().refine(isRealDate, "تاريخ الدخول غير صالح"),
+    assetType: z.enum(ASSET_TYPES, { error: "نوع الأصل غير صالح" }),
+    entryDate: requiredDate("تاريخ الدخول"),
+    exitDate: optionalDate("تاريخ الخروج"),
     symbol: z
       .string()
       .trim()
@@ -46,25 +36,25 @@ const tradeInputSchema = z
     stopLoss: optionalNumber("وقف الخسارة"),
     targetPrice: optionalNumber("الهدف السعري"),
     sellPrice: optionalNumber("سعر البيع"),
-    fees: z
-      .string()
-      .trim()
-      .transform((value) => (value === "" ? 0 : Number(value)))
-      .pipe(z.number({ error: "الرسوم غير صالحة" }).min(0, "الرسوم لا يمكن أن تكون سالبة").max(MAX_AMOUNT)),
-    reason: z.string().trim().max(MAX_REASON_LENGTH, "الملاحظات طويلة جدًا"),
+    fees: nonNegativeNumber("الرسوم"),
+    reason: boundedText(MAX_REASON_LENGTH, "الملاحظات طويلة جدًا"),
   })
   .refine((trade) => trade.status !== "closed" || trade.sellPrice !== null, {
     message: "سعر البيع مطلوب للصفقة المغلقة",
     path: ["sellPrice"],
-  });
+  })
+  .refine((trade) => trade.status !== "closed" || trade.exitDate !== null, {
+    message: "تاريخ الخروج مطلوب للصفقة المغلقة",
+    path: ["exitDate"],
+  })
+  .refine((trade) => trade.status !== "closed" || trade.exitDate === null || trade.exitDate >= trade.entryDate, {
+    message: "تاريخ الخروج لا يمكن أن يسبق تاريخ الدخول",
+    path: ["exitDate"],
+  })
+  .transform((trade) => (trade.status === "closed" ? trade : { ...trade, exitDate: null }));
 
 export function parseTradeInput(input: unknown): ParseResult {
-  const result = tradeInputSchema.safeParse(input);
-  if (result.success) return { ok: true, data: result.data };
-  return { ok: false, error: result.error.issues[0]?.message ?? "بيانات الصفقة غير صالحة" };
+  return toParsed(tradeInputSchema.safeParse(input), "بيانات الصفقة غير صالحة");
 }
 
-export function parseTradeId(input: unknown): string | null {
-  const result = z.uuid().safeParse(input);
-  return result.success ? result.data : null;
-}
+export const parseTradeId = parseUuid;

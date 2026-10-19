@@ -1,27 +1,22 @@
 "use client";
 
 import { useCallback, useMemo, useOptimistic, useState, useTransition } from "react";
-import { logout } from "@/app/(auth)/actions";
 import { deleteTrade, restoreTrade } from "@/app/actions/trades";
-import type { RiskSettings } from "@/lib/settings/schema";
+import { portfolioSummary, riskCapital } from "@/lib/portfolio/calc";
+import type { PortfolioPageProps } from "@/lib/portfolio/types";
 import { computeMetrics, countByStatus, filterTrades } from "@/lib/trades/calc";
 import { buildCsv } from "@/lib/trades/csv";
 import { formatInt, todayISO } from "@/lib/trades/format";
 import { openRisk } from "@/lib/trades/risk";
 import { FILTER_OPTIONS } from "@/lib/trades/status";
 import type { Trade, TradeFilter } from "@/lib/trades/types";
+import { AppHeader } from "./AppHeader";
 import { Metrics } from "./Metrics";
 import { RiskSettingsDialog } from "./RiskSettingsDialog";
 import { Toast } from "./Toast";
 import { TradeForm } from "./TradeForm";
 import { TradeList } from "./TradeList";
 import { useToast } from "./useToast";
-
-interface TradeJournalProps {
-  trades: Trade[];
-  email: string;
-  settings: RiskSettings;
-}
 
 type FormState = { isOpen: false } | { isOpen: true; trade: Trade | null };
 
@@ -36,8 +31,9 @@ function downloadCsv(trades: readonly Trade[]): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
-  const [visibleTrades, removeOptimistically] = useOptimistic(trades, (state, id: string) => state.filter((t) => t.id !== id));
+export function TradeJournal({ data, email }: PortfolioPageProps) {
+  const { settings } = data;
+  const [visibleTrades, removeOptimistically] = useOptimistic(data.trades, (state, id: string) => state.filter((t) => t.id !== id));
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<TradeFilter>("all");
   const [form, setForm] = useState<FormState>({ isOpen: false });
@@ -49,6 +45,9 @@ export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
   const metrics = useMemo(() => computeMetrics(visibleTrades), [visibleTrades]);
   const counts = useMemo(() => countByStatus(visibleTrades), [visibleTrades]);
   const risk = useMemo(() => openRisk(visibleTrades), [visibleTrades]);
+  const portfolio = useMemo(() => portfolioSummary({ ...data, trades: visibleTrades }), [data, visibleTrades]);
+  const capital = riskCapital(portfolio);
+  const sizing = { capital, riskPercent: settings.riskPercent, cash: portfolio.cash };
   const hasNoTrades = visibleTrades.length === 0;
 
   const openForm = (trade: Trade | null = null) => setForm({ isOpen: true, trade });
@@ -88,15 +87,10 @@ export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
   return (
     <>
       <main className="app">
-        <div className="account">
-          <span dir="ltr">{email}</span>
-          <div className="account-actions">
-            <button className="btn btn-secondary btn-sm" type="button" onClick={() => setIsSettingsOpen(true)}>إعدادات المخاطرة</button>
-            <form action={logout}>
-              <button className="btn btn-secondary btn-sm" type="submit">تسجيل الخروج</button>
-            </form>
-          </div>
-        </div>
+        <AppHeader
+          email={email}
+          actions={<button className="btn btn-secondary btn-sm" type="button" onClick={() => setIsSettingsOpen(true)}>إعدادات المخاطرة</button>}
+        />
 
         <header className="top">
           <div>
@@ -118,7 +112,7 @@ export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
           </div>
 
           <div className="toolbar">
-            <input className="search" type="search" placeholder="ابحث عن سهم..." aria-label="بحث عن سهم" autoComplete="off" enterKeyHint="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input className="search" type="search" placeholder="ابحث عن سهم أو صندوق..." aria-label="بحث عن سهم" autoComplete="off" enterKeyHint="search" value={query} onChange={(e) => setQuery(e.target.value)} />
             <div className="chips" role="group" aria-label="فلترة حسب الحالة">
               {FILTER_OPTIONS.map((option) => (
                 <button key={option.value} className="chip" type="button" aria-pressed={filter === option.value} onClick={() => setFilter(option.value)}>
@@ -146,8 +140,8 @@ export function TradeJournal({ trades, email, settings }: TradeJournalProps) {
 
       <button className="btn btn-primary fab" type="button" onClick={() => openForm()}>＋ صفقة جديدة</button>
       <Toast toast={toast} onDismiss={hideToast} />
-      {form.isOpen && <TradeForm trade={form.trade} settings={settings} onClose={closeForm} onSaved={handleSaved} />}
-      {isSettingsOpen && <RiskSettingsDialog settings={settings} onClose={closeSettings} onSaved={handleSettingsSaved} />}
+      {form.isOpen && <TradeForm trade={form.trade} sizing={sizing} onClose={closeForm} onSaved={handleSaved} />}
+      {isSettingsOpen && <RiskSettingsDialog settings={settings} capital={capital} onClose={closeSettings} onSaved={handleSettingsSaved} />}
     </>
   );
 }

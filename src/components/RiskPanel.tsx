@@ -1,13 +1,18 @@
-import type { RiskSettings } from "@/lib/settings/schema";
 import { formatInt, formatMoney, formatPercent, formatRatio } from "@/lib/trades/format";
 import { riskFromFormValues, riskPercentOfCapital, suggestQuantity } from "@/lib/trades/risk";
 import type { TradeFormValues } from "@/lib/trades/types";
 
 const GOOD_REWARD_TO_RISK = 2;
 
+export type SizingContext = {
+  capital: number | null;
+  riskPercent: number;
+  cash: number;
+};
+
 interface RiskPanelProps {
   values: TradeFormValues;
-  settings: RiskSettings;
+  sizing: SizingContext;
   onApplyQuantity: (quantity: string) => void;
 }
 
@@ -38,26 +43,32 @@ function ratioTone(ratio: number | null): string {
 
 function riskNote(percent: number | null, limit: number): string | null {
   if (percent === null) return null;
-  const share = `${formatPercent(percent)} من رأس المال`;
+  const share = `${formatPercent(percent)} من إجمالي المحفظة`;
   return percent > limit ? `${share} — أعلى من حدك (${formatPercent(limit)})` : share;
 }
 
-function Sizing({ values, settings, onApplyQuantity }: RiskPanelProps) {
-  if (settings.capital === null) {
-    return <p className="risk-hint">حدّد رأس المال من «إعدادات المخاطرة» لحساب الكمية المقترحة.</p>;
+function purchaseCost(values: TradeFormValues): number | null {
+  const cost = (Number(values.buyPrice) || 0) * (Number(values.quantity) || 0) + (Number(values.fees) || 0);
+  return cost > 0 ? cost : null;
+}
+
+function Sizing({ values, sizing, onApplyQuantity }: RiskPanelProps) {
+  if (sizing.capital === null) {
+    return <p className="risk-hint">سجّل إيداعًا في «المحفظة» لحساب الكمية المقترحة.</p>;
   }
   const suggested = suggestQuantity({
-    capital: settings.capital,
-    riskPercent: settings.riskPercent,
+    capital: sizing.capital,
+    riskPercent: sizing.riskPercent,
     buyPrice: Number(values.buyPrice) || 0,
     stopLoss: values.stopLoss.trim() === "" ? null : Number(values.stopLoss),
+    maxSpend: sizing.cash,
   });
   if (suggested === null) return <p className="risk-hint">أدخل سعر الشراء ووقف خسارة أقل منه لحساب الكمية المقترحة.</p>;
-  if (suggested === 0) return <p className="risk-hint loss">الوقف بعيد جدًا عن سعر الشراء بالنسبة لحد المخاطرة المحدد.</p>;
+  if (suggested === 0) return <p className="risk-hint loss">الرصيد النقدي لا يكفي، أو الوقف بعيد جدًا بالنسبة لحد المخاطرة.</p>;
   return (
     <div className="risk-sizing">
       <span>
-        الكمية المقترحة لمخاطرة {formatPercent(settings.riskPercent)}: <strong>{formatInt(suggested)} سهم</strong>
+        الكمية المقترحة لمخاطرة {formatPercent(sizing.riskPercent)}: <strong>{formatInt(suggested)}</strong>
       </span>
       {String(suggested) !== values.quantity && (
         <button className="btn btn-secondary btn-sm" type="button" onClick={() => onApplyQuantity(String(suggested))}>
@@ -69,10 +80,12 @@ function Sizing({ values, settings, onApplyQuantity }: RiskPanelProps) {
 }
 
 export function RiskPanel(props: RiskPanelProps) {
-  const { values, settings } = props;
+  const { values, sizing } = props;
   const risk = riskFromFormValues(values);
-  const percent = riskPercentOfCapital(risk.riskAmount, settings.capital);
-  const isOverLimit = percent !== null && percent > settings.riskPercent;
+  const percent = riskPercentOfCapital(risk.riskAmount, sizing.capital);
+  const isOverLimit = percent !== null && percent > sizing.riskPercent;
+  const cost = values.status === "cancelled" ? null : purchaseCost(values);
+  const isOverCash = cost !== null && cost > sizing.cash;
 
   return (
     <section className="risk-panel span2" aria-label="تحليل المخاطرة">
@@ -81,18 +94,22 @@ export function RiskPanel(props: RiskPanelProps) {
           label="المخاطرة عند وقف الخسارة"
           value={risk.riskAmount === null ? "أدخل وقف خسارة أقل من سعر الشراء" : formatMoney(risk.riskAmount)}
           tone={risk.riskAmount === null ? "muted" : isOverLimit ? "loss" : ""}
-          note={riskNote(percent, settings.riskPercent)}
+          note={riskNote(percent, sizing.riskPercent)}
         />
         <RiskRow
           label="العائد عند الهدف"
           value={risk.rewardAmount === null ? "أدخل هدفًا أعلى من سعر الشراء" : formatMoney(risk.rewardAmount)}
           tone={risk.rewardAmount === null ? "muted" : "gain"}
         />
-        <RiskRow
-          label="العائد / المخاطرة"
-          value={risk.rewardToRisk === null ? "—" : formatRatio(risk.rewardToRisk)}
-          tone={ratioTone(risk.rewardToRisk)}
-        />
+        <RiskRow label="العائد / المخاطرة" value={risk.rewardToRisk === null ? "—" : formatRatio(risk.rewardToRisk)} tone={ratioTone(risk.rewardToRisk)} />
+        {cost !== null && (
+          <RiskRow
+            label="تكلفة الشراء شاملة الرسوم"
+            value={formatMoney(cost)}
+            tone={isOverCash ? "loss" : ""}
+            note={`المتاح في المحفظة: ${formatMoney(sizing.cash)}${isOverCash ? " — الرصيد غير كافٍ" : ""}`}
+          />
+        )}
       </dl>
       <Sizing {...props} />
     </section>

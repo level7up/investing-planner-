@@ -1,3 +1,4 @@
+import { ASSET_LABELS } from "@/lib/trades/status";
 import type { Trade } from "@/lib/trades/types";
 import { toTradeView } from "./trade-view";
 
@@ -21,7 +22,7 @@ function TradeRow({ trade, onEdit, onDelete }: TradeItemProps) {
     <tr>
       <td>{view.date}</td>
       <td>
-        <div className="sym">{trade.symbol}</div>
+        <div className="sym">{trade.symbol}{trade.assetType === "gold_fund" && <span className="pill pill--gold">{ASSET_LABELS.gold_fund}</span>}</div>
         {trade.reason && <div className="note" title={trade.reason}>{trade.reason}</div>}
       </td>
       <td><span className={`pill ${view.statusClass}`}>{view.statusLabel}</span></td>
@@ -65,6 +66,7 @@ function TradeCard({ trade, onEdit, onDelete }: TradeItemProps) {
         <div>
           <div className="card-meta">
             <span className="sym">{trade.symbol}</span>
+            {trade.assetType === "gold_fund" && <span className="pill pill--gold">{ASSET_LABELS.gold_fund}</span>}
             <span className={`pill ${view.statusClass}`}>{view.statusLabel}</span>
           </div>
           <p className="card-date">{view.date}</p>

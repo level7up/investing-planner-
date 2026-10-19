@@ -16,6 +16,7 @@ export type SizingInputs = {
   riskPercent: number;
   buyPrice: number;
   stopLoss: number | null;
+  maxSpend?: number;
 };
 
 export type OpenRisk = { amount: number; unprotectedCount: number };
@@ -51,13 +52,14 @@ export function riskPercentOfCapital(riskAmount: number | null, capital: number 
   return roundMoney((riskAmount / capital) * 100);
 }
 
-export function suggestQuantity({ capital, riskPercent, buyPrice, stopLoss }: SizingInputs): number | null {
+export function suggestQuantity({ capital, riskPercent, buyPrice, stopLoss, maxSpend }: SizingInputs): number | null {
   if (!isPositive(capital) || !isPositive(riskPercent) || !isPositive(buyPrice) || !isPositive(stopLoss)) return null;
   if (stopLoss >= buyPrice) return null;
   const riskBudget = (capital * riskPercent) / 100;
   const byRisk = Math.floor(riskBudget / (buyPrice - stopLoss) + FLOAT_TOLERANCE);
-  const byCapital = Math.floor(capital / buyPrice + FLOAT_TOLERANCE);
-  return Math.min(byRisk, byCapital);
+  const spendable = Math.max(0, Math.min(capital, maxSpend ?? capital));
+  const affordable = Math.floor(spendable / buyPrice + FLOAT_TOLERANCE);
+  return Math.min(byRisk, affordable);
 }
 
 export function rMultiple(trade: Trade): number | null {

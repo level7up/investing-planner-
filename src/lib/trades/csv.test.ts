@@ -5,6 +5,8 @@ import type { Trade } from "./types";
 const trade: Trade = {
   id: "t1",
   entryDate: "2026-10-01",
+  assetType: "stock",
+  exitDate: null,
   symbol: "COMI",
   status: "closed",
   buyPrice: 10,
@@ -26,7 +28,13 @@ describe("buildCsv", () => {
 
   test("writes one row per trade with the computed result", () => {
     const [, row] = buildCsv([trade]).split("\r\n");
-    expect(row).toBe('"2026-10-01","COMI","مغلقة","10","100","9","","12","5","195","105","","1.86","said ""go"""');
+    expect(row).toBe('"2026-10-01","","COMI","سهم","مغلقة","10","100","9","","12","5","195","105","","1.86","said ""go"""');
+  });
+
+  test("includes asset type and exit date", () => {
+    const [header, row] = buildCsv([{ ...trade, assetType: "gold_fund", exitDate: "2026-10-04" }]).split("\r\n");
+    expect(header).toContain('"تاريخ الدخول","تاريخ الخروج","السهم","نوع الأصل"');
+    expect(row.startsWith('"2026-10-01","2026-10-04","COMI","صندوق ذهب"')).toBe(true);
   });
 
   test("includes the risk columns in the header", () => {

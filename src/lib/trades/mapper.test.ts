@@ -5,7 +5,9 @@ describe("fromRow", () => {
   test("maps a database row to a trade and coerces numerics", () => {
     const trade = fromRow({
       id: "id-1",
+      asset_type: "gold_fund",
       entry_date: "2026-10-01",
+      exit_date: "2026-10-04",
       symbol: "COMI",
       status: "closed",
       buy_price: "10.5",
@@ -19,7 +21,9 @@ describe("fromRow", () => {
     });
     expect(trade).toEqual({
       id: "id-1",
+      assetType: "gold_fund",
       entryDate: "2026-10-01",
+      exitDate: "2026-10-04",
       symbol: "COMI",
       status: "closed",
       buyPrice: 10.5,
@@ -36,7 +40,9 @@ describe("fromRow", () => {
   test("falls back to safe defaults for an unknown status and missing reason", () => {
     const trade = fromRow({
       id: "id-2",
+      asset_type: "bonds",
       entry_date: "2026-10-01",
+      exit_date: null,
       symbol: "X",
       status: "weird",
       buy_price: 1,
@@ -49,6 +55,7 @@ describe("fromRow", () => {
       updated_at: "2026-10-01T10:00:00Z",
     });
     expect(trade.status).toBe("open");
+    expect(trade.assetType).toBe("stock");
     expect(trade.reason).toBe("");
   });
 });
@@ -57,7 +64,9 @@ describe("toRow", () => {
   test("maps validated input to snake case columns", () => {
     expect(
       toRow({
+        assetType: "stock",
         entryDate: "2026-10-01",
+        exitDate: null,
         symbol: "COMI",
         status: "open",
         buyPrice: 10,
@@ -69,7 +78,9 @@ describe("toRow", () => {
         reason: "",
       }),
     ).toEqual({
+      asset_type: "stock",
       entry_date: "2026-10-01",
+      exit_date: null,
       symbol: "COMI",
       status: "open",
       buy_price: 10,

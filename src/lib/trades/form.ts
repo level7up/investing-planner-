@@ -5,7 +5,9 @@ const toField = (value: number | null): string => (value === null ? "" : String(
 
 export function emptyFormValues(today: string = todayISO()): TradeFormValues {
   return {
+    assetType: "stock",
     entryDate: today,
+    exitDate: "",
     symbol: "",
     status: "open",
     buyPrice: "",
@@ -20,7 +22,9 @@ export function emptyFormValues(today: string = todayISO()): TradeFormValues {
 
 export function tradeToFormValues(trade: Trade): TradeFormValues {
   return {
+    assetType: trade.assetType,
     entryDate: trade.entryDate,
+    exitDate: trade.exitDate ?? "",
     symbol: trade.symbol,
     status: trade.status,
     buyPrice: toField(trade.buyPrice),

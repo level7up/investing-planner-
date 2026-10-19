@@ -1,32 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef } from "react";
 import { saveTrade } from "@/app/actions/trades";
-import type { RiskSettings } from "@/lib/settings/schema";
 import { previewPnl } from "@/lib/trades/calc";
 import { emptyFormValues, tradeToFormValues } from "@/lib/trades/form";
-import { formatSignedMoney, toneOf } from "@/lib/trades/format";
-import { STATUS_LABELS } from "@/lib/trades/status";
-import { TRADE_STATUSES, type Trade, type TradeFormValues } from "@/lib/trades/types";
-import { RiskPanel } from "./RiskPanel";
+import { formatSignedMoney, todayISO, toneOf } from "@/lib/trades/format";
+import { ASSET_LABELS, STATUS_LABELS } from "@/lib/trades/status";
+import { ASSET_TYPES, TRADE_STATUSES, type Trade, type TradeFormValues, type TradeStatus } from "@/lib/trades/types";
+import { tradeCashOutflow } from "@/lib/wallet/calc";
+import { RiskPanel, type SizingContext } from "./RiskPanel";
+import { DateField, NotesField, NumberField, Segmented } from "./ui/fields";
+import { Modal } from "./ui/Modal";
+import { useFormState, useFormSubmit } from "./ui/useFormSubmit";
 
 interface TradeFormProps {
   trade: Trade | null;
-  settings: RiskSettings;
+  sizing: SizingContext;
   onClose: () => void;
   onSaved: (symbol: string) => void;
 }
 
-type NumberField = "buyPrice" | "quantity" | "stopLoss" | "targetPrice" | "sellPrice" | "fees";
-
-const NUMBER_FIELDS: readonly { name: NumberField; label: string; placeholder: string; step: string; min: string }[] = [
-  { name: "buyPrice", label: "سعر الشراء (ج.م)", placeholder: "0.00", step: "any", min: "0" },
-  { name: "quantity", label: "عدد الأسهم", placeholder: "0", step: "1", min: "1" },
-  { name: "stopLoss", label: "سعر وقف الخسارة", placeholder: "اختياري", step: "any", min: "0" },
-  { name: "targetPrice", label: "الهدف السعري", placeholder: "اختياري", step: "any", min: "0" },
-  { name: "sellPrice", label: "سعر البيع", placeholder: "0.00", step: "any", min: "0" },
-  { name: "fees", label: "إجمالي الرسوم (شراء + بيع)", placeholder: "0", step: "any", min: "0" },
-];
+const STATUS_OPTIONS = TRADE_STATUSES.map((value) => ({ value, label: STATUS_LABELS[value] }));
+const ASSET_OPTIONS = ASSET_TYPES.map((value) => ({ value, label: ASSET_LABELS[value] }));
 
 function Preview({ values }: { values: TradeFormValues }) {
   const result = previewPnl(values);
@@ -38,97 +33,70 @@ function Preview({ values }: { values: TradeFormValues }) {
   );
 }
 
-export function TradeForm({ trade, settings, onClose, onSaved }: TradeFormProps) {
-  const [values, setValues] = useState<TradeFormValues>(() => (trade ? tradeToFormValues(trade) : emptyFormValues()));
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
+  const { values, update, setValues } = useFormState<TradeFormValues>(() => (trade ? tradeToFormValues(trade) : emptyFormValues()));
+  const { error, isPending, submit } = useFormSubmit(
+    () => saveTrade(trade?.id ?? null, values),
+    () => onSaved(values.symbol.trim().toUpperCase()),
+  );
   const symbolRef = useRef<HTMLInputElement>(null);
   const isClosed = values.status === "closed";
+  const isFund = values.assetType === "gold_fund";
+  const availableCash = sizing.cash + (trade ? tradeCashOutflow(trade) : 0);
 
   useEffect(() => {
-    document.body.classList.add("modal-open");
     if (!trade && matchMedia("(pointer: fine)").matches) symbolRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.classList.remove("modal-open");
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [trade, onClose]);
+  }, [trade]);
 
-  const update = <K extends keyof TradeFormValues>(name: K, value: TradeFormValues[K]) =>
-    setValues((current) => ({ ...current, [name]: value }));
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    startTransition(async () => {
-      const result = await saveTrade(trade?.id ?? null, values);
-      if (result.ok) onSaved(values.symbol.trim().toUpperCase());
-      else setError(result.error);
-    });
-  };
+  const changeStatus = (status: TradeStatus) =>
+    setValues((current) => ({
+      ...current,
+      status,
+      exitDate: status === "closed" && current.exitDate === "" ? todayISO() : current.exitDate,
+    }));
 
   return (
-    <div className="overlay">
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="formTitle">
-        <form className="trade-form" onSubmit={handleSubmit}>
-          <div className="sheet-head">
-            <h2 id="formTitle">{trade ? "تعديل الصفقة" : "إضافة صفقة جديدة"}</h2>
-            <button className="icon-btn" type="button" aria-label="إغلاق" onClick={onClose}>✕</button>
-          </div>
-          <div className="sheet-body">
-            {error && <p className="alert alert--error" role="alert">{error}</p>}
-            <div className="grid">
-              <label className="f">تاريخ الدخول
-                <input type="date" required value={values.entryDate} onChange={(e) => update("entryDate", e.target.value)} />
-              </label>
-              <label className="f">رمز / اسم السهم
-                <input ref={symbolRef} maxLength={30} required placeholder="مثال: COMI" autoComplete="off" autoCapitalize="characters" value={values.symbol} onChange={(e) => update("symbol", e.target.value)} />
-              </label>
-              <fieldset className="group span2">
-                <legend>حالة الصفقة</legend>
-                <div className="seg">
-                  {TRADE_STATUSES.map((status) => (
-                    <label key={status}>
-                      <input type="radio" name="status" value={status} checked={values.status === status} onChange={() => update("status", status)} />
-                      <span>{STATUS_LABELS[status]}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              {NUMBER_FIELDS.map((field) => (
-                <label key={field.name} className="f">{field.label}
-                  <input
-                    type="number"
-                    inputMode={field.step === "1" ? "numeric" : "decimal"}
-                    min={field.min}
-                    step={field.step}
-                    placeholder={field.placeholder}
-                    required={field.name === "buyPrice" || field.name === "quantity" || (field.name === "sellPrice" && isClosed)}
-                    value={values[field.name]}
-                    onChange={(e) => update(field.name, e.target.value)}
-                  />
-                  {field.name === "sellPrice" && (
-                    <span className={isClosed ? "hint need" : "hint"}>{isClosed ? "مطلوب للصفقة المغلقة" : "اتركه فارغًا لو الصفقة مفتوحة"}</span>
-                  )}
-                </label>
-              ))}
-              <RiskPanel values={values} settings={settings} onApplyQuantity={(quantity) => update("quantity", quantity)} />
-              <label className="f span2">سبب الدخول / ملاحظات
-                <textarea rows={3} maxLength={2000} placeholder="مثال: اختراق مقاومة مع ارتفاع حجم التداول" value={values.reason} onChange={(e) => update("reason", e.target.value)} />
-              </label>
-            </div>
-          </div>
-          <div className="sheet-foot">
-            <Preview values={values} />
-            <div className="foot-actions">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>إلغاء</button>
-              <button type="submit" className="btn btn-primary" disabled={isPending}>{isPending ? "جارٍ الحفظ…" : "حفظ الصفقة"}</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Modal
+      title={trade ? "تعديل الصفقة" : "إضافة صفقة جديدة"}
+      error={error}
+      isPending={isPending}
+      submitLabel="حفظ الصفقة"
+      onClose={onClose}
+      onSubmit={submit}
+      footerExtra={<Preview values={values} />}
+    >
+      <Segmented legend="نوع الأصل" name="assetType" options={ASSET_OPTIONS} value={values.assetType} onChange={(v) => update("assetType", v)} />
+      <DateField label="تاريخ الدخول" value={values.entryDate} onChange={(v) => update("entryDate", v)} />
+      <label className="f">{isFund ? "رمز / اسم الصندوق" : "رمز / اسم السهم"}
+        <input ref={symbolRef} maxLength={30} required placeholder={isFund ? "مثال: AZG" : "مثال: COMI"} autoComplete="off" autoCapitalize="characters" value={values.symbol} onChange={(e) => update("symbol", e.target.value)} />
+      </label>
+      <Segmented legend="حالة الصفقة" name="status" options={STATUS_OPTIONS} value={values.status} onChange={changeStatus} />
+      <NumberField label="سعر الشراء (ج.م)" placeholder="0.00" isRequired value={values.buyPrice} onChange={(v) => update("buyPrice", v)} />
+      <NumberField label={isFund ? "عدد الوحدات" : "عدد الأسهم"} isInteger isRequired value={values.quantity} onChange={(v) => update("quantity", v)} />
+      <NumberField label="سعر وقف الخسارة" placeholder="اختياري" value={values.stopLoss} onChange={(v) => update("stopLoss", v)} />
+      <NumberField label="الهدف السعري" placeholder="اختياري" value={values.targetPrice} onChange={(v) => update("targetPrice", v)} />
+      <NumberField
+        label="سعر البيع"
+        placeholder="0.00"
+        isRequired={isClosed}
+        value={values.sellPrice}
+        onChange={(v) => update("sellPrice", v)}
+        hint={<span className={isClosed ? "hint need" : "hint"}>{isClosed ? "مطلوب للصفقة المغلقة" : "اتركه فارغًا لو الصفقة مفتوحة"}</span>}
+      />
+      {isClosed ? (
+        <DateField label="تاريخ الخروج" min={values.entryDate} value={values.exitDate} onChange={(v) => update("exitDate", v)} />
+      ) : (
+        <span className="grid-spacer" aria-hidden="true" />
+      )}
+      <NumberField
+        label="إجمالي الرسوم (شراء + بيع)"
+        isWide
+        value={values.fees}
+        onChange={(v) => update("fees", v)}
+        hint={<span className="hint">تُخصم من المحفظة مع الشراء.</span>}
+      />
+      <RiskPanel values={values} sizing={{ ...sizing, cash: availableCash }} onApplyQuantity={(quantity) => update("quantity", quantity)} />
+      <NotesField label="سبب الدخول / ملاحظات" placeholder="مثال: اختراق مقاومة مع ارتفاع حجم التداول" value={values.reason} onChange={(v) => update("reason", v)} />
+    </Modal>
   );
 }

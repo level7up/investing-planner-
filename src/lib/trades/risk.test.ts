@@ -5,6 +5,8 @@ import type { Trade, TradeFormValues } from "./types";
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   id: "t1",
   entryDate: "2026-10-01",
+  assetType: "stock",
+  exitDate: null,
   symbol: "COMI",
   status: "open",
   buyPrice: 10,
@@ -44,7 +46,9 @@ describe("riskProfile", () => {
 
 describe("riskFromFormValues", () => {
   const values: TradeFormValues = {
+    assetType: "stock",
     entryDate: "2026-10-01",
+    exitDate: "",
     symbol: "COMI",
     status: "open",
     buyPrice: "10",
@@ -87,6 +91,11 @@ describe("suggestQuantity", () => {
 
   test("is not thrown off by floating point error", () => {
     expect(suggestQuantity({ ...base, capital: 100_000, buyPrice: 10.1, stopLoss: 9.9 })).toBe(5000);
+  });
+
+  test("never suggests more shares than the available cash can buy", () => {
+    expect(suggestQuantity({ ...base, maxSpend: 5000 })).toBe(500);
+    expect(suggestQuantity({ ...base, maxSpend: -100 })).toBe(0);
   });
 
   test("never suggests more shares than the capital can buy", () => {

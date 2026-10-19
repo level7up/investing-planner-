@@ -1,10 +1,14 @@
 export const TRADE_STATUSES = ["open", "closed", "cancelled"] as const;
+export const ASSET_TYPES = ["stock", "gold_fund"] as const;
 
 export type TradeStatus = (typeof TRADE_STATUSES)[number];
+export type AssetType = (typeof ASSET_TYPES)[number];
 
 export type Trade = {
   id: string;
+  assetType: AssetType;
   entryDate: string;
+  exitDate: string | null;
   symbol: string;
   status: TradeStatus;
   buyPrice: number;
@@ -18,7 +22,9 @@ export type Trade = {
 };
 
 export type TradeFormValues = {
+  assetType: AssetType;
   entryDate: string;
+  exitDate: string;
   symbol: string;
   status: TradeStatus;
   buyPrice: string;

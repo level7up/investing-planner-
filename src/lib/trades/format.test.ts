@@ -38,6 +38,8 @@ describe("form values", () => {
     const trade: Trade = {
       id: "6f1c2b8e-3d4a-4c5b-9e6f-7a8b9c0d1e2f",
       entryDate: "2026-10-01",
+      assetType: "gold_fund",
+      exitDate: "2026-10-05",
       symbol: "COMI",
       status: "closed",
       buyPrice: 10.25,
