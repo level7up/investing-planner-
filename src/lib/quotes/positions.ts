@@ -19,7 +19,7 @@ export type LivePosition = {
   alert: PositionAlert;
 };
 
-export type OpenUnrealised = { amount: number; pricedCount: number; openCount: number };
+export type OpenUnrealised = { amount: number; marketValue: number; pricedCount: number; openCount: number };
 
 const manualQuote = (trade: Trade, price: number): Quote => ({
   symbol: trade.symbol,
@@ -72,6 +72,7 @@ export function openUnrealised(trades: readonly Trade[], quotes: QuoteMap): Open
   const positions = open.map((trade) => livePosition(trade, quotes)).filter((p): p is LivePosition => p !== null);
   return {
     amount: roundMoney(positions.reduce((sum, position) => sum + position.unrealised, 0)),
+    marketValue: roundMoney(open.reduce((sum, trade) => sum + openMarketValue(trade, quotes), 0)),
     pricedCount: positions.length,
     openCount: open.length,
   };

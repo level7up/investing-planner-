@@ -81,6 +81,6 @@ describe("openUnrealised", () => {
       makeTrade({ id: "c", symbol: "NOPE" }),
       makeTrade({ id: "d", status: "closed", sellPrice: 20 }),
     ];
-    expect(openUnrealised(trades, quotes)).toEqual({ amount: 50, pricedCount: 2, openCount: 3 });
+    expect(openUnrealised(trades, quotes)).toEqual({ amount: 50, marketValue: 3050, pricedCount: 2, openCount: 3 });
   });
 });

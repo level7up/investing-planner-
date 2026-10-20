@@ -37,6 +37,11 @@ function unrealisedHint(unrealised: OpenUnrealised): string {
   return `بسعر السوق لـ ${formatInt(unrealised.pricedCount)} من ${formatInt(unrealised.openCount)} صفقة مفتوحة`;
 }
 
+function currentCapitalHint(unrealised: OpenUnrealised): string {
+  if (unrealised.pricedCount === unrealised.openCount) return "قيمة الصفقات المفتوحة بسعر السوق";
+  return "بسعر السوق، وبسعر الشراء لما ليس له سعر";
+}
+
 export function Metrics({ metrics, risk, unrealised }: MetricsProps) {
   const winRate = metrics.winRate === null ? "—" : formatPercent(metrics.winRate);
   return (
@@ -45,6 +50,7 @@ export function Metrics({ metrics, risk, unrealised }: MetricsProps) {
       <Metric label="نسبة الصفقات الرابحة" value={winRate} hint="من الصفقات المغلقة" />
       <Metric label="عدد الصفقات" value={formatInt(metrics.total)} hint="كل الصفقات المسجلة" />
       <Metric label="رأس المال المفتوح" value={formatMoney(metrics.openCapital)} hint="قيمة الشراء للصفقات المفتوحة" />
+      <Metric label="رأس المال الحالي" value={formatMoney(unrealised.marketValue)} hint={currentCapitalHint(unrealised)} tone={toneOf(unrealised.marketValue - metrics.openCapital)} />
       <Metric label="ربح/خسارة غير محققة" value={formatSignedMoney(unrealised.amount)} hint={unrealisedHint(unrealised)} tone={toneOf(unrealised.amount)} />
       <Metric label="المخاطرة المفتوحة" value={formatMoney(risk.amount)} hint={openRiskHint(risk)} tone={risk.unprotectedCount > 0 ? "loss" : ""} />
     </section>
