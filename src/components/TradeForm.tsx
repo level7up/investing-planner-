@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { saveTrade } from "@/app/actions/trades";
 import { previewPnl } from "@/lib/trades/calc";
 import { emptyFormValues, tradeToFormValues } from "@/lib/trades/form";
-import { formatSignedMoney, todayISO, toneOf } from "@/lib/trades/format";
+import { formatDate, formatSignedMoney, todayISO, toneOf } from "@/lib/trades/format";
 import { ASSET_LABELS, STATUS_LABELS } from "@/lib/trades/status";
 import type { FundSummary } from "@/lib/funds/startamarkets";
 import { ASSET_TYPES, isFundAsset, TRADE_STATUSES, type AssetType, type Trade, type TradeFormValues, type TradeStatus } from "@/lib/trades/types";
@@ -33,6 +33,11 @@ function Preview({ values }: { values: TradeFormValues }) {
       {result === null ? <strong className="is-muted">تظهر عند إغلاق الصفقة</strong> : <strong className={toneOf(result)}>{formatSignedMoney(result)}</strong>}
     </div>
   );
+}
+
+function manualPriceHint(values: TradeFormValues): string {
+  if (values.manualPrice.trim() === "") return "اتركه فارغًا لاستخدام السعر التلقائي.";
+  return values.manualPriceDate ? `يحلّ محل السعر التلقائي · ${formatDate(values.manualPriceDate)}` : "يحلّ محل السعر التلقائي.";
 }
 
 export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
@@ -67,6 +72,9 @@ export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
     }));
 
   const renameFund = (symbol: string) => setValues((current) => ({ ...current, symbol, fundId: "" }));
+
+  const changeManualPrice = (manualPrice: string) =>
+    setValues((current) => ({ ...current, manualPrice, manualPriceDate: manualPrice.trim() === "" ? "" : todayISO() }));
 
   const changeStatus = (status: TradeStatus) =>
     setValues((current) => ({
@@ -107,11 +115,17 @@ export function TradeForm({ trade, sizing, onClose, onSaved }: TradeFormProps) {
         onChange={(v) => update("sellPrice", v)}
         hint={<span className={isClosed ? "hint need" : "hint"}>{isClosed ? "مطلوب للصفقة المغلقة" : "اتركه فارغًا لو الصفقة مفتوحة"}</span>}
       />
-      {isClosed ? (
-        <DateField label="تاريخ الخروج" min={values.entryDate} value={values.exitDate} onChange={(v) => update("exitDate", v)} />
-      ) : (
-        <span className="grid-spacer" aria-hidden="true" />
+      {isClosed && <DateField label="تاريخ الخروج" min={values.entryDate} value={values.exitDate} onChange={(v) => update("exitDate", v)} />}
+      {values.status === "open" && (
+        <NumberField
+          label="السعر الحالي (يدوي)"
+          placeholder="اختياري"
+          value={values.manualPrice}
+          onChange={changeManualPrice}
+          hint={<span className="hint">{manualPriceHint(values)}</span>}
+        />
       )}
+      {values.status === "cancelled" && <span className="grid-spacer" aria-hidden="true" />}
       <NumberField
         label="إجمالي الرسوم (شراء + بيع)"
         isWide

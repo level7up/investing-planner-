@@ -7,6 +7,8 @@ const trade: Trade = {
   entryDate: "2026-10-01",
   assetType: "stock",
   fundId: null,
+  manualPrice: null,
+  manualPriceDate: null,
   exitDate: null,
   symbol: "COMI",
   status: "closed",

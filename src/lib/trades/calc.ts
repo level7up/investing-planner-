@@ -25,6 +25,10 @@ export function purchaseValue(trade: Trade): number {
   return roundMoney(trade.buyPrice * trade.quantity);
 }
 
+export function returnPercent(result: number, cost: number): number | null {
+  return cost > 0 ? roundMoney((result / cost) * 100) : null;
+}
+
 export function previewPnl(values: PreviewValues): number | null {
   const buy = Number(values.buyPrice);
   const quantity = Number(values.quantity);

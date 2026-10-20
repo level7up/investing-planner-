@@ -1,6 +1,6 @@
-import { livePosition, type PositionAlert } from "@/lib/quotes/positions";
+import { livePosition, type LivePosition, type PositionAlert } from "@/lib/quotes/positions";
 import type { QuoteMap } from "@/lib/quotes/types";
-import { pnl, purchaseValue } from "@/lib/trades/calc";
+import { pnl, purchaseValue, returnPercent } from "@/lib/trades/calc";
 import {
   formatAmount,
   formatDate,
@@ -22,6 +22,7 @@ export type TradeView = {
   statusLabel: string;
   statusClass: string;
   result: { text: string; className: string; note: string | null };
+  returnPercent: { text: string; className: string } | null;
   buy: string;
   quantity: string;
   purchaseValue: string;
@@ -54,6 +55,20 @@ function resultOf(trade: Trade, live: ReturnType<typeof livePosition>): TradeVie
   return { text: "غير محقق", className: "muted", note: null };
 }
 
+function currentNote(live: LivePosition): string | null {
+  const date = live.asOf ? formatDate(live.asOf) : null;
+  if (live.isManual) return date ? `يدوي · ${date}` : "يدوي";
+  if (live.changePercent !== null) return formatSignedPercent(live.changePercent);
+  return date && `سعر ${date}`;
+}
+
+function returnPercentOf(trade: Trade, live: ReturnType<typeof livePosition>): TradeView["returnPercent"] {
+  const result = pnl(trade) ?? live?.unrealised ?? null;
+  const percent = result === null ? null : returnPercent(result, purchaseValue(trade));
+  if (percent === null) return null;
+  return { text: formatSignedPercent(percent), className: toneOf(percent) };
+}
+
 export function toTradeView(trade: Trade, quotes: QuoteMap): TradeView {
   const risk = riskProfile(trade);
   const live = livePosition(trade, quotes);
@@ -62,12 +77,13 @@ export function toTradeView(trade: Trade, quotes: QuoteMap): TradeView {
     statusLabel: STATUS_LABELS[trade.status],
     statusClass: `pill--${trade.status}`,
     result: resultOf(trade, live),
+    returnPercent: returnPercentOf(trade, live),
     buy: formatPrice(trade.buyPrice),
     quantity: formatInt(trade.quantity),
     purchaseValue: formatAmount(purchaseValue(trade)),
     current: live && {
       price: formatPrice(live.price),
-      note: live.changePercent !== null ? formatSignedPercent(live.changePercent) : live.asOf ? `سعر ${formatDate(live.asOf)}` : null,
+      note: currentNote(live),
       noteClass: live.changePercent === null ? "muted" : toneOf(live.changePercent),
     },
     alert: live?.alert ?? null,

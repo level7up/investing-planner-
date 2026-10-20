@@ -10,6 +10,7 @@ export type LivePosition = {
   price: number;
   changePercent: number | null;
   asOf: string | null;
+  isManual: boolean;
   marketValue: number;
   unrealised: number;
   unrealisedR: number | null;
@@ -20,7 +21,15 @@ export type LivePosition = {
 
 export type OpenUnrealised = { amount: number; pricedCount: number; openCount: number };
 
+const manualQuote = (trade: Trade, price: number): Quote => ({
+  symbol: trade.symbol,
+  price,
+  changePercent: null,
+  asOf: trade.manualPriceDate,
+});
+
 export function quoteFor(trade: Trade, quotes: QuoteMap): Quote | null {
+  if (trade.manualPrice !== null) return manualQuote(trade, trade.manualPrice);
   if (isFundAsset(trade.assetType)) return trade.fundId ? (quotes[fundQuoteKey(trade.fundId)] ?? null) : null;
   return quotes[trade.symbol.toUpperCase()] ?? null;
 }
@@ -43,6 +52,7 @@ export function livePosition(trade: Trade, quotes: QuoteMap): LivePosition | nul
     price,
     changePercent: quote.changePercent,
     asOf: quote.asOf ?? null,
+    isManual: trade.manualPrice !== null,
     marketValue: roundMoney(price * trade.quantity),
     unrealised,
     unrealisedR: riskAmount === null ? null : roundMoney(unrealised / riskAmount),

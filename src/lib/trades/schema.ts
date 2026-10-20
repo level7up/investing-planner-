@@ -35,6 +35,8 @@ const tradeInputSchema = z
       .trim()
       .refine((value) => value === "" || FUND_ID.test(value), "معرّف الصندوق غير صالح")
       .transform((value) => (value === "" ? null : value)),
+    manualPrice: optionalNumber("السعر الحالي"),
+    manualPriceDate: optionalDate("تاريخ السعر اليدوي"),
     entryDate: requiredDate("تاريخ الدخول"),
     exitDate: optionalDate("تاريخ الخروج"),
     symbol: z.string().trim().min(1, "رمز السهم أو اسم الصندوق مطلوب").max(MAX_SYMBOL_LENGTH, "الاسم طويل جدًا"),
@@ -67,8 +69,14 @@ const tradeInputSchema = z
     message: "تاريخ الخروج لا يمكن أن يسبق تاريخ الدخول",
     path: ["exitDate"],
   })
+  .refine((trade) => trade.status !== "open" || trade.manualPrice === null || trade.manualPriceDate !== null, {
+    message: "تاريخ السعر اليدوي مطلوب",
+    path: ["manualPriceDate"],
+  })
   .transform((trade) => ({
     ...trade,
+    manualPrice: trade.status === "open" ? trade.manualPrice : null,
+    manualPriceDate: trade.status === "open" && trade.manualPrice !== null ? trade.manualPriceDate : null,
     exitDate: trade.status === "closed" ? trade.exitDate : null,
     fundId: isFundAsset(trade.assetType) ? trade.fundId : null,
     symbol: isFundAsset(trade.assetType) ? trade.symbol : trade.symbol.toUpperCase(),

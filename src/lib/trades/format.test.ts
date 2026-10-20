@@ -86,6 +86,8 @@ describe("form values", () => {
       entryDate: "2026-10-01",
       assetType: "gold_fund",
       fundId: "5989",
+      manualPrice: null,
+      manualPriceDate: null,
       exitDate: "2026-10-05",
       symbol: "COMI",
       status: "closed",

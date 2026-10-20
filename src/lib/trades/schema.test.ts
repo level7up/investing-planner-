@@ -5,6 +5,8 @@ import type { TradeFormValues } from "./types";
 const validInput: TradeFormValues = {
   assetType: "stock",
   fundId: "",
+  manualPrice: "",
+  manualPriceDate: "",
   entryDate: "2026-10-01",
   exitDate: "2026-10-03",
   symbol: " comi ",
@@ -26,6 +28,8 @@ describe("parseTradeInput", () => {
       data: {
         assetType: "stock",
         fundId: null,
+        manualPrice: null,
+        manualPriceDate: null,
         entryDate: "2026-10-01",
         exitDate: null,
         symbol: "COMI",
@@ -93,6 +97,28 @@ describe("parseTradeInput", () => {
 
   test("rejects non object input", () => {
     expect(parseTradeInput(null).ok).toBe(false);
+  });
+});
+
+describe("manual current price", () => {
+  test("is kept with its date for an open trade", () => {
+    const result = parseTradeInput({ ...validInput, manualPrice: "11.25", manualPriceDate: "2026-10-20" });
+    expect(result.ok && result.data).toMatchObject({ manualPrice: 11.25, manualPriceDate: "2026-10-20" });
+  });
+
+  test("is dropped when the trade is not open", () => {
+    const result = parseTradeInput({ ...validInput, status: "closed", sellPrice: "12", manualPrice: "11", manualPriceDate: "2026-10-20" });
+    expect(result.ok && result.data).toMatchObject({ manualPrice: null, manualPriceDate: null });
+  });
+
+  test("clears the date when the price is empty", () => {
+    const result = parseTradeInput({ ...validInput, manualPriceDate: "2026-10-20" });
+    expect(result.ok && result.data).toMatchObject({ manualPrice: null, manualPriceDate: null });
+  });
+
+  test("rejects a non-positive price or a price without a date", () => {
+    expect(parseTradeInput({ ...validInput, manualPrice: "0", manualPriceDate: "2026-10-20" }).ok).toBe(false);
+    expect(parseTradeInput({ ...validInput, manualPrice: "11" })).toEqual({ ok: false, error: "تاريخ السعر اليدوي مطلوب" });
   });
 });
 

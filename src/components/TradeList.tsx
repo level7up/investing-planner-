@@ -26,6 +26,7 @@ const COLUMNS = [
   "القيمة الشرائية",
   "السعر الحالي",
   "صافي الربح/الخسارة",
+  "نسبة الربح/الخسارة",
   "وقف الخسارة",
   "الهدف",
   "سعر البيع",
@@ -87,6 +88,7 @@ function TradeRow({ trade, view, onEdit, onDelete }: TradeItemProps) {
       <td className="num">{view.purchaseValue}</td>
       <td className="num"><CurrentPrice view={view} /></td>
       <td className={`num result ${view.result.className}`}><Result view={view} /></td>
+      <td className={`num result ${view.returnPercent?.className ?? "muted"}`}>{view.returnPercent?.text ?? "—"}</td>
       <td className="num">{view.stop}</td>
       <td className="num">{view.target}</td>
       <td className="num">{view.sell}</td>
@@ -121,7 +123,10 @@ function TradeCard({ trade, view, onEdit, onDelete }: TradeItemProps) {
           </div>
           <p className="card-date">{view.date}</p>
         </div>
-        <div className={`card-result ${view.result.className}`}><Result view={view} /></div>
+        <div className={`card-result ${view.result.className}`}>
+          <Result view={view} />
+          {view.returnPercent && <div className="card-percent">{view.returnPercent.text}</div>}
+        </div>
       </div>
       <dl className="stats">
         {stats.map(([label, value]) => (

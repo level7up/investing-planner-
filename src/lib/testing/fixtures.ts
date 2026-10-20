@@ -6,6 +6,8 @@ export const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   id: "t1",
   assetType: "stock",
   fundId: null,
+  manualPrice: null,
+  manualPriceDate: null,
   entryDate: "2026-10-01",
   exitDate: null,
   symbol: "COMI",

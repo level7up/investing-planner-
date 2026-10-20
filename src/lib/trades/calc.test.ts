@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { computeMetrics, countByStatus, filterTrades, pnl, previewPnl, purchaseValue } from "./calc";
+import { computeMetrics, countByStatus, filterTrades, pnl, previewPnl, purchaseValue, returnPercent } from "./calc";
 import type { Trade } from "./types";
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
@@ -7,6 +7,8 @@ const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   entryDate: "2026-10-01",
   assetType: "stock",
   fundId: null,
+  manualPrice: null,
+  manualPriceDate: null,
   exitDate: null,
   symbol: "COMI",
   status: "closed",
@@ -46,6 +48,20 @@ describe("pnl", () => {
 describe("purchaseValue", () => {
   test("is buy price times quantity without fees", () => {
     expect(purchaseValue(makeTrade({ buyPrice: 1.43, quantity: 10, fees: 3 }))).toBe(14.3);
+  });
+});
+
+describe("returnPercent", () => {
+  test("is the net result as a percentage of the purchase value", () => {
+    expect(returnPercent(195, 1000)).toBe(19.5);
+  });
+
+  test("is negative for a loss and rounds to two decimals", () => {
+    expect(returnPercent(-52.25, 1430)).toBe(-3.65);
+  });
+
+  test("returns null when there is no purchase value", () => {
+    expect(returnPercent(10, 0)).toBeNull();
   });
 });
 

@@ -14,6 +14,7 @@ describe("livePosition", () => {
       price: 12,
       changePercent: 1.5,
       asOf: null,
+      isManual: false,
       marketValue: 1200,
       unrealised: 190,
       unrealisedR: 1.73,
@@ -48,6 +49,20 @@ describe("fund trades", () => {
     const trade = makeTrade({ assetType: "gold_fund", fundId: "5989", symbol: "Azimut Gold AZ Fund", buyPrice: 20, quantity: 10.5 });
     expect(livePosition(trade, fundQuotes)).toMatchObject({ price: 24, asOf: "2026-10-18", marketValue: 252, unrealised: 42 });
     expect(livePosition({ ...trade, fundId: null }, fundQuotes)).toBeNull();
+  });
+});
+
+describe("manual current price", () => {
+  const manual = { manualPrice: 11, manualPriceDate: "2026-10-19" };
+
+  test("overrides the live quote and is marked as manual", () => {
+    expect(livePosition(makeTrade(manual), quotes)).toMatchObject({ price: 11, changePercent: null, asOf: "2026-10-19", isManual: true, unrealised: 100 });
+  });
+
+  test("prices trades that have no live quote", () => {
+    const fund = makeTrade({ ...manual, assetType: "equity_fund", fundId: null, symbol: "صندوق غير مرتبط" });
+    expect(livePosition(fund, quotes)).toMatchObject({ price: 11, marketValue: 1100 });
+    expect(openMarketValue(fund, quotes)).toBe(1100);
   });
 });
 

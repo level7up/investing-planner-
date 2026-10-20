@@ -7,6 +7,8 @@ export function emptyFormValues(today: string = todayISO()): TradeFormValues {
   return {
     assetType: "stock",
     fundId: "",
+    manualPrice: "",
+    manualPriceDate: "",
     entryDate: today,
     exitDate: "",
     symbol: "",
@@ -25,6 +27,8 @@ export function tradeToFormValues(trade: Trade): TradeFormValues {
   return {
     assetType: trade.assetType,
     fundId: trade.fundId ?? "",
+    manualPrice: toField(trade.manualPrice),
+    manualPriceDate: trade.manualPriceDate ?? "",
     entryDate: trade.entryDate,
     exitDate: trade.exitDate ?? "",
     symbol: trade.symbol,

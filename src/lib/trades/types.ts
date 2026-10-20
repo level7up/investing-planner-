@@ -8,6 +8,8 @@ export type Trade = {
   id: string;
   assetType: AssetType;
   fundId: string | null;
+  manualPrice: number | null;
+  manualPriceDate: string | null;
   entryDate: string;
   exitDate: string | null;
   symbol: string;
@@ -25,6 +27,8 @@ export type Trade = {
 export type TradeFormValues = {
   assetType: AssetType;
   fundId: string;
+  manualPrice: string;
+  manualPriceDate: string;
   entryDate: string;
   exitDate: string;
   symbol: string;
